@@ -21,7 +21,7 @@ This repository is built by coding agents directed by a solo operator, through G
 
 | WBS | Output path(s) |
 | --- | --- |
-| 1.0 | `docs/design/`, `docs/`, and the repository root (WP 1.6) |
+| 1.0 | `docs/design/`, `docs/`, `skills/cadence-method/references/` (WP 1.1, WP 1.2), and the repository root (WP 1.6) |
 | 2.0 | `skills/cadence-method/` |
 | 3.0 | `commands/`, `agents/` |
 | 4.0 | `commands/`, `agents/` |
