@@ -1,0 +1,5 @@
+# macOS
+.DS_Store
+
+# ADWS pipeline scratch (evidence trees live outside the repo; never commit)
+/artifacts/
