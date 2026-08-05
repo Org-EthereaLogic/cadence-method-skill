@@ -1,0 +1,336 @@
+# CADENCE Method Automation — Detailed Project Plan & Work Breakdown Structure
+
+**The authority document for the cadence-method skill project**
+
+| | |
+| --- | --- |
+| **Author** | Anthony Johnson II |
+| **Readers** | The practitioner directing the build, and the coding agents implementing it |
+| **Status** | v1.7 final — reconciled and ready for design-freeze review; build work other than WBS 5.0, which starts from the WP 1.3 validator spec sheet, remains gated on signed WP 1.4 |
+| **Date** | 2026-08-05 UTC (see the Revision Record) |
+| **Governing method** | `CADENCE_METHOD.md` v4.7 (`work-product/aim-it-agentic-engineering-method/`) |
+| **Document set** | Two documents, proportional to a solo-operator tooling project (`P4`, method §3.2): this plan (authority document) and `CADENCE_AUTOMATION_USER_STORIES.md` (declared companion holding the canonical `US-`/`AC-` definitions) |
+| **Scope** | Requirements, architecture, risks, and a phased WBS for automating the CADENCE Method as custom Skills, Agents, Hooks, and Commands for Claude Code (primary), with Codex parity as release 2 |
+
+**Authority declaration.** Per method §3.2 this is the project's single authority document. `FR-`, `NFR-`, `SC-`, `A-`, `R-`, `S-`, `X-`, `D-` (design decision, §4.2), `CR-` (conflict resolution, §10), and open-question (`Q1`, `Q2`, …) identifiers are defined canonically here. `US-` and `AC-` identifiers are defined canonically in the companion user-stories document; this plan points to them and does not redefine them. When the two documents disagree, the conflict is resolved and recorded in §10 (the conflict resolution record), and that record governs.
+
+---
+
+## 1. Project charter
+
+**Problem.** The CADENCE Method exists as a reference specification (v4.7) and explicitly ships without a runtime: "a project still has to supply its own … Directives, validators, promotion command, and scaffold implementation" (method, *How to use this file*). Inspection of the three source repositories used for this plan — `attom-data`, `adws-pipeline-skill`, and `spec-driven-docs-system`, whose precedent roles are named in D-3 (§4.2) — found no reusable package implementing the method's complete §6 guardrail architecture. This is a bounded source-set finding, not a claim about all CADENCE adoptions. The method itself labels §§6–7 **target design**, specified but not yet installed in a given project.
+
+**Solution.** Build the missing runtime as a portable skill package — `cadence-method` — modeled on the adws-pipeline-skill packaging pattern: one orchestrating `SKILL.md` with reference files, a set of phase and verification agents, slash commands for the practitioner surface, advisory hooks, and deterministic fixture-pinned validators. The package turns the method's §9 Agent Operating Card from prose an agent must internalize into commands, agents, and gates it executes.
+
+**Sponsor / operator.** Anthony Johnson II (solo operator; also the accepting reviewer).
+
+**Success criteria** (measurable; SC-1–SC-4 verified in WBS 7.0, SC-5 verified in WBS 8.0 at release 2):
+
+- **SC-1** — A practitioner can take a project from `/cadence:init` through a full Frame → Track cycle to one Approved artifact using only the shipped commands, on a real (non-fixture) work item.
+- **SC-2** — The Draft → Candidate gate blocks each of eleven seeded defect classes — untagged claim, malformed tag parameter, rewritten revision row, unresolvable identifier, broken cross-reference, missing manifest/registry row, broken link, asymmetric quotation, hand-edited render (render-fidelity drift), silently disabled check (caught by the gate self-test), and tooling shell-lint failure — in a gate-failure drill, and each check demonstrates falsifiability: red on the seeded defect for the right reason before passing on the fix (pattern 7).
+- **SC-3** — Drafting stays advisory: no hook or check blocks any write in the Draft zone, demonstrated by drill; gate and advisory timings satisfy the reproducible NFR-2 budgets (method §6.3).
+- **SC-4** — All deterministic validators pass their frozen fixture suites byte-for-byte in local CI, and every promotion verdict in the drills is script-computed from the evidence tree (patterns 5 and 9).
+- **SC-5** *(release 2)* — The parity suite shows identical validator and gate verdicts under Claude Code and Codex invocation paths.
+
+**Constitutional posture.** The build itself runs under the Constitution's decision order. Two principles dominate the design: `P2` (every PASS claim in this project's own acceptance is replayable evidence, not narrative) and `P4` (the runtime must not recreate the method §5 failure — proportionality is a requirement here, not an aspiration; see FR-11 and R-1).
+
+---
+
+## 2. Scope
+
+### 2.1 In scope
+
+- **S-1** — The `cadence-method` skill package: `SKILL.md` orchestrator contract plus `references/` (phase definitions, zone lifecycle, evidence classes, ID namespaces, artifact layout, gate specifications).
+- **S-2** — Practitioner slash commands: `/cadence:init`, `/cadence:status`, the six phase commands (`/cadence:frame`, `/cadence:assess`, `/cadence:innovate`, `/cadence:model`, `/cadence:implement`, `/cadence:track`), `/cadence:promote` (both boundaries), and `/cadence:gate` (run the deterministic gate standalone, advisory, without promoting).
+- **S-3** — Agent definitions: six phase agents (framer, assessor, innovator, modeler, implementer, tracker), Critic, Advocate, an evidence Grader (AC-coverage over promotion candidates), and a Librarian (manifest and authority-document steward invoked by init/status/promote).
+- **S-4** — Hooks: advisory pre-write annotation in Draft; Approved-zone write warning; all hooks warn-only (method §6.3: "hooks warn, they don't block").
+- **S-5** — Deterministic validators with frozen fixture suites, covering the method §6.1 Candidate gate — evidence-tag grammar, cross-reference integrity, revision-row immutability, link integrity, render fidelity, manifest/registry consistency, the gate self-test (proves each check still fires on a known-bad input), and a shell-lint of the gate tooling — plus four additions this runtime makes explicit: ID-namespace resolution and quotation symmetry, both required at this boundary by method §9's promotion contract; loose-pointer drift, which runs as `warn` and never as `fail` (method §6.2 rule 1); and promotion-report generation.
+- **S-6** — The project scaffold seeded by `/cadence:init` (method §3.6): Constitution, Directives template, evidence-class reference, ID-namespace reference, manifest template, zone directories, evidence root, and the project's agent/hook/command registrations for the runtime in use.
+- **S-7** — Acceptance drills and evidence: end-to-end cycle, gate-failure drills, advisory-drafting drill, with append-only run evidence retained in the repository.
+- **S-8** *(release 2)* — Codex parity: runtime-native Codex packaging governed by the verified per-runtime invocation map, a shared runtime-independent core, and a parity harness.
+
+### 2.2 Out of scope
+
+- **X-1** — A coding build pipeline. The seven-phase gated build pipeline already exists as adws-pipeline-skill; `/cadence:implement` hands coding tasks to it via its task contract rather than duplicating it (`P4`; method §3.4 is *referenced*, not re-implemented).
+- **X-2** — The §3.4 metered run allowance (usage meter, run ceiling, run allowance). The method marks it target design pending calibration data; building it before real runs exist would be pattern inflation. Recorded as future scope (Q3).
+- **X-3** — Model-generated blocking of any kind. No LLM output — including Critic, Advocate, and Grader verdicts — may change the deterministic verdict or block promotion by itself. When invoked, model findings are recorded and surfaced; a practitioner may separately place a finding on an explicit human hold, and only that human decision blocks until a human resolves it (FR-13; US-14). The LLM review tier is opt-in and advisory only (§6.3); no validator in S-5 calls a model.
+- **X-4** — A general document-generation system (templates, model-tier routing, suite manifests à la spec-driven-docs-system). CADENCE governs artifacts; it does not author them for the practitioner beyond what the phase agents produce.
+- **X-5** — Retroactive migration tooling for existing governed repositories (e.g., the attom case study). Adoption of the runtime by existing projects is manual in release 1.
+- **X-6** — CI/CD hosting, GitHub Actions distribution, or marketplace packaging. Local `make`-style checks only, matching the reference repos.
+
+---
+
+## 3. Requirements
+
+### 3.1 Functional requirements
+
+| ID | Requirement | Traces to |
+| --- | --- | --- |
+| FR-1 | `/cadence:init` seeds the §3.6 scaffold idempotently, never overwriting existing governance files without confirmation. | US-1 |
+| FR-2 | `/cadence:status` reports arc phase and artifact zone read-only; loose-pointer drift reports as warn. | US-2 |
+| FR-3 | Each of the six phase commands dispatches its phase agent and writes the phase's output artifact into Draft with advisory-only checking. | US-3–US-8 |
+| FR-4 | Phase agents enforce their phase's method §2 discipline as output-structure requirements (e.g., the framer's verbal-mandate path; the assessor's three recorded channels; the modeler's continue/pivot/stop record). | US-3–US-8 |
+| FR-5 | `/cadence:promote` runs the full deterministic gate at Draft → Candidate and blocks on `fail`; the move is `git mv` + one commit. A failed gate commits nothing unless the practitioner records a visible gate exemption naming the failing check, actor, and reason (AC-9.5; method §9), in which case the exemption is written into the promotion report and the artifact's audit trail (AC-17.2) and the commit records both the transition and the exempted check. | US-9 |
+| FR-6 | `/cadence:promote --finalize` re-runs the gate in a clean checkout at Candidate → Approved and records the artifact's content hash in the manifest. Approved is thereafter frozen by policy with integrity-drift detection. The hash is re-verified on every status run, standalone gate run, and promotion; a mismatch is reported as an **integrity failure**, advisory in `/cadence:status` and in standalone `/cadence:gate` runs and blocking only when evaluated inside `/cadence:promote` at a promotion boundary. Approved content is modified only via a recorded forced rollback that re-baselines the hash. The runtime does not claim filesystem immutability or comprehensive malicious-tamper detection. | US-10 |
+| FR-7 | All Draft-zone hooks are advisory: every write proceeds; advisories are feedback only; hook failure degrades open in Draft and closed at the gate. | US-11 |
+| FR-8 | Every gate check is a standalone deterministic script emitting `pass \| warn \| fail`, pinned byte-for-byte by frozen fixtures run in local CI. | US-12 |
+| FR-9 | The evidence-tag validator enforces the Appendix A closed set (eleven classes; required date and `Speaker`/`Employer`/`key` parameters), read from the project's seeded reference. | US-12 |
+| FR-10 | The ID-namespace validator enforces single-definition resolution through the authority document and identifier stability (never reused, never renumbered). | US-12 |
+| FR-11 | Enforcement tiers (block/warn/guide) live in one project-visible configuration; block is structurally restricted to the two promotion boundaries; tier changes are ordinary reviewed edits. | US-16 |
+| FR-12 | Revision rows are append-only (modification fails the gate); version pointers outside the manifest warn on drift, never fail. | US-13 |
+| FR-13 | Critic/Advocate review is opt-in. Method §6.3 reserves the model review tier for the Candidate → Approved boundary; this runtime additionally exposes it at Draft → Candidate as an explicitly invoked, default-off option — a recorded divergence from §6.3's placement rule, never a default. The default for each boundary is recorded in project configuration; when invoked, agents run in parallel with fresh context and their findings and verbatim dissent are retained and surfaced. Model output never changes the deterministic verdict or blocks promotion by itself. A practitioner may record an explicit human hold with actor and reason; that human decision blocks until its resolution and effect are recorded. | US-14 |
+| FR-14 | Promotion and phase verdicts are computed by a report script over an append-only evidence tree and drawn from the closed set `promote` \| `retry` \| `quarantine`, defined here as: *promote* — all blocking checks passed; *retry* — one or more blocking checks failed and the content can be fixed and re-run; *quarantine* — the gate could not run to completion (the degrade-closed condition of FR-7 and NFR-3, with the checks that could not run reported as skipped and never as passed, per NFR-6). Each verdict carries a distinct exit code; the orchestrator relays and never overrides. | US-15 |
+| FR-15 | Interrupted runs are resumable from the evidence tree; cancel/retry/resume/resolve exist on every multi-agent operation; every override is recorded. | US-17 |
+| FR-16 | Where a runtime does not register custom agent types, dispatch falls back to a general-purpose subagent with the agent definition inlined verbatim (transport changes, contract does not). | US-14 (AC-14.3) |
+| FR-17 | Every gate and status report ends with a stated-limits section enumerating what was not checked. | US-9 (AC-9.4) |
+| FR-18 | The Draft → Candidate gate implements the method §6.1 Candidate set: the content checks — including render fidelity — plus the self-test proving each check still fires on a known-bad input, and a shell-lint of the gate tooling, together with the S-5 additions this runtime makes explicit. | US-9 (AC-9.2), SC-2 |
+| FR-19 | The Grader is opt-in; its inputs are the promotion candidate and its authority-resolved criterion set; it emits one verdict per criterion from the closed set satisfied/partial/unaddressed/contradicted. Its output is recorded and surfaced but never changes the deterministic verdict or blocks promotion by itself; a practitioner may create an explicit human hold. Unparseable output is reported as a visible skipped advisory review, never a pass. | US-19 |
+
+### 3.2 Non-functional requirements
+
+| ID | Requirement |
+| --- | --- |
+| NFR-1 | **Proportionality (`P4`).** `SKILL.md` under 500 lines with detail pushed to `references/`; no framework dependencies; core validators are standalone single-file scripts, with thin adapters for declared external tools. |
+| NFR-2 | **Host-gate speed (reproducible).** Drill evidence records the reference host's OS and version, architecture, CPU model and core count, RAM, power mode, Node version, and every external gate-tool version. On that host and the reference corpus — the CADENCE method + playbook sources (~125 KB of governed Markdown) — the full deterministic gate completes in ≤ 30 s on each of five consecutive measured runs after one warm-up. A Draft-zone advisory pass completes in < 1 s at p95 across at least 100 measured writes after 10 warm-up writes, using the nearest-rank percentile. The clean-room run happens once, at finalization only. Any corpus or budget re-baseline records the changed inputs and rationale. |
+| NFR-3 | **Runtime portability and declared dependencies.** Core deterministic validators require Node ≥ 20 and no network access. The complete promotion gate additionally requires version control, a pinned shell-lint tool, the project-declared render command/toolchain, and a PDF extractor where PDF fidelity is checked. `/cadence:init` and gate preflight report the resolved versions; a missing required tool is reported and degrades closed at promotion. Agent and command definitions use only runtime surfaces verified by WP 1.5. |
+| NFR-4 | **Security (`P3`).** No credentials in any artifact or fixture; hooks and commands never invoke `--force`/`--no-verify` git operations; explicit-path staging only. |
+| NFR-5 | **Auditability (`P5`).** All run evidence is append-only with UTC timestamps; the evidence tree is sufficient for another operator to replay or explain every verdict. |
+| NFR-6 | **Honest degradation.** Any check that cannot run is reported as skipped, never counted as passed, in every surface (hook feedback, gate reports, drill evidence). |
+
+---
+
+## 4. Architecture overview
+
+### 4.1 Package layout (release 1 — target; to be confirmed by WP 1.5)
+
+Release 1 packages as a **Claude Code plugin** named `cadence`, which is the current distribution vehicle that establishes a stable `/cadence:*` command namespace (plugin commands/skills are namespaced by plugin name; bare `.claude/commands/` files remain a supported legacy surface but do not establish a distributable namespace). The layout below is the working target; WP 1.5 verifies the exact plugin manifest and directory conventions against the live Claude Code documentation at the design freeze, and the verified map supersedes this sketch.
+
+```
+cadence-method-skill/
+├── .claude-plugin/                   # plugin manifest: name "cadence" → /cadence:* commands
+├── skills/cadence-method/
+│   ├── SKILL.md                      # orchestrator operating contract (< 500 lines)
+│   └── references/
+│       ├── phase-definitions.md      # §2 distilled: per-phase purpose/methods/output/discipline
+│       ├── zone-lifecycle.md         # §6 zones, the two blocking boundaries, promotion procedure
+│       ├── evidence-classes.md       # Appendix A verbatim (seed source for /cadence:init)
+│       ├── id-namespaces.md          # §3.2 prefix table + stability rules
+│       ├── artifact-layout.md        # evidence tree, attempt dirs, append-only rules
+│       └── gate-checks.md            # validator → check map, tiers, stated limits
+├── commands/                         # init, status, frame, assess, innovate, model,
+│                                     # implement, track, promote, gate
+├── agents/                           # cadence-framer … cadence-tracker, cadence-critic,
+│                                     # cadence-advocate, cadence-grader, cadence-librarian
+├── hooks/                            # advisory pre-write (Draft), approved-zone warn
+├── scripts/validators/               # deterministic core validators (Node ≥ 20)
+├── scripts/adapters/                 # thin adapters/preflight for declared external gate tools
+├── fixtures/                         # frozen per-validator fixture packs
+├── drills/                           # acceptance drill definitions + retained evidence
+└── docs/                             # this plan, the user stories, field-run records
+```
+
+### 4.2 Design decisions
+
+**D-1 · Commands are the practitioner surface; the skill is the agent surface.** A human drives phases and promotions through `/cadence:*` commands; an agent pointed at a governed project loads `SKILL.md` as its method §9 operating card. Both resolve to the same references and validators, so there is one source of truth for every rule.
+
+**D-2 · Enforcement geometry is structural, not disciplinary.** Automated blocking logic exists only inside the promote command's deterministic gate step. Hooks physically lack a blocking path in Draft (FR-7); the tier-configuration validator rejects any check configured to block elsewhere (FR-11). A practitioner-created human hold is evaluated only in the promotion control flow and remains distinct from a model or validator verdict (FR-13). The method §5 failure is prevented by construction, not by policy.
+
+**D-3 · Reuse, don't rebuild (`P4`).** Coding tasks inside Implement delegate to adws-pipeline-skill (X-1). The promotion mechanics (git mv + atomic commit, quality-gated transitions) adapt the proven spec-driven-docs promotion pattern. The fixture-parity discipline and the inline-dispatch fallback recorded as finding F-11 in the ADWS pipeline's field records — adopted here as FR-16 — adopt the ADWS precedents verbatim.
+
+**D-4 · The method file is upstream, this runtime is downstream.** The skill's references restate the method for execution; where they disagree, `CADENCE_METHOD.md` governs and the reference is corrected. Method version updates land as reviewed reference updates (the loose-pointer rule applies: references name the method version they distill, and drift warns).
+
+**D-5 · Per-runtime packaging is a verified mapping, never an assumed mirror.** The two runtimes expose different surfaces, and the surfaces themselves move. Working model, to be verified and pinned by WP 1.5: Claude Code — plugin packaging (§4.1) providing skills, agents, hooks, and `/cadence:*` commands. Codex — repository skills under `.agents/skills/` (invoked via the runtime's skill-selection surface, not slash-command names), project agents under `.codex/agents/*.toml`, hooks via `.codex/hooks.json`; the deprecated user-local custom-prompt surface (`/prompts:*`) is not a distribution target. The deliverable is a **per-runtime invocation map** — for each practitioner action (init, each phase, gate, promote, status): how it is invoked on each runtime, from which packaged file, with any unavoidable divergence documented, never silent. Canonical names (phases, zones, verdicts, tiers) appear in all evidence regardless of runtime (the ADWS alias rule); the shared validators, fixtures, and references are the runtime-independent core that both packagings wrap.
+
+---
+
+## 5. Assumptions
+
+- **A-1** — `CADENCE_METHOD.md` v4.7 is the stable governing specification for release 1; changes to it during the build land as recorded scope changes, not silent redesigns.
+- **A-2** — Claude Code is the primary runtime and supports the documented skill/agent/command/hook surfaces used here; Cowork/cloud sessions may not register custom agent types, which FR-16's fallback covers.
+- **A-3** — Node ≥ 20, version control, the pinned shell-lint tool, and each project-declared render/PDF tool required by its gate are available wherever promotion runs; init and gate preflight verify rather than assume them (NFR-3).
+- **A-4** — Solo operator: the practitioner and the accepting reviewer are the same person, so acceptance rests on replayable drill evidence (`P2`) plus a recorded human sign-off (WP 7.4); fresh-context Critic/Advocate runs on the runtime's own artifacts supply the independent perspective a second reviewer would, as advisory input only.
+- **A-5** — Projects governed by this runtime use git; promotion-as-`git mv` and hook wiring depend on it.
+- **A-6** — The ADWS pipeline skill remains available for Implement-phase delegation (X-1); its absence degrades Implement to manual build tasks, not to a rebuilt pipeline.
+
+---
+
+## 6. Risks
+
+| ID | Risk | L×I | Mitigation |
+| --- | --- | --- | --- |
+| R-1 | **Recreating the method §5 bottleneck** — enforcement accretes into the drafting path as features are added. | M×H | D-2 structural geometry; SC-3 advisory-drafting drill is a release gate. |
+| R-2 | **Validator drift** — a validator edit silently changes verdicts on existing projects. | M×H | FR-8 frozen fixtures in local CI; byte-for-byte diffs. |
+| R-3 | **Runtime capability variance** — hooks, agent registration, or command frontmatter behave differently across Claude Code versions and Cowork/cloud sessions. | H×M | FR-16 inline-dispatch fallback, adopted from the ADWS pipeline's dispatch precedent (D-3) and re-verified against this runtime by WP 1.5; hooks advisory-only so a non-firing hook loses annotation, never integrity; capability check in `/cadence:init` reports what the current runtime supports. |
+| R-4 | **Pattern inflation (`P4`)** — the runtime grows speculative machinery (metering, dashboards, multi-project registries) ahead of need. | M×M | X-2/X-4/X-6 exclusions; scope changes only through this document's revision record; the method's own §8 anti-pattern list applied to this build in review. |
+| R-5 | **Codex parity divergence** — runtime-native packaging or invocation behavior drifts between Claude Code and Codex. | M×M | D-5 invocation map; shared runtime-independent core where formats allow; SC-5 parity suite diffs verdicts; canonical names recorded in all evidence (AC-18.3). |
+| R-6 | **Advisory fatigue** — noisy Draft-zone hints train the practitioner to ignore all advisories, blunting the gate's early-warning value. | M×M | Hook latency budget (AC-11.1); advisory classes reviewed in the pilot (WBS 9.0) and pruned on evidence. |
+| R-7 | **Solo-operator acceptance blind spots** — the builder grades their own work. | M×M | A-4 measures: fresh-context Critic/Advocate review retained as advisory input on the runtime's own promotion drills; human acceptance tied to replayable drill evidence; evidence retained append-only for later independent audit; SC-2 falsifiability requirement (each check proven red-for-the-right-reason first). |
+| R-8 | **Gate slowness on large documents** erodes the fast-host-gate promise and tempts practitioners to bypass promotion. | L×M | NFR-2 budget measured reproducibly in the drills on the ~125 KB method-plus-playbook reference corpus, with the host and toolchain recorded. |
+
+---
+
+## 7. Open questions
+
+- **Q1** — Should the Grader's per-criterion coverage verdict (satisfied / partial / unaddressed / contradicted) default **on** at Draft → Candidate for authority documents specifically, given their blast radius? Method §6.3 reserves the model review tier for Candidate → Approved, so defaulting it on at the earlier boundary would be a divergence to record in §10, not a free configuration choice. *Default pending decision: opt-in everywhere, per AC-19.2 (the Grader's own criterion; FR-19).*
+- **Q2** — Namespace collision at scale: when one repository hosts several CADENCE projects, are identifiers scoped per manifest or per repository? *Default pending decision: per manifest, one manifest per authority document.*
+- **Q3** — When real run data exists, does the §3.4 metered run allowance (X-2) enter scope as release 3? *Deferred by design; revisit after WBS 9.0 produces usage data.*
+
+---
+
+## 8. Work Breakdown Structure
+
+Effort scale: **S** ≤ half day · **M** ≈ 1 day · **L** ≈ 2–3 days. Sequencing follows the method's own §7 adoption logic: extract invariants first, advisory surfaces before any blocking gate, promotion gate before clean-room, measurement last. Every work package's exit criterion is evidence-bearing (`P2`).
+
+### 1.0 Requirements & design freeze
+
+| WP | Work package | Deliverable | Effort | Depends on | Traces to |
+| --- | --- | --- | --- | --- | --- |
+| 1.1 | Extract the method invariants into draft references: phase definitions (method §2), zone lifecycle (method §6), evidence classes (method App. A, verbatim), ID namespaces (method §3.2), gate checks with tiers | `references/*.md` drafts | M | — | FR-9, FR-10, FR-11 |
+| 1.2 | Specify the evidence-tree layout for phase runs and promotions (attempt dirs, manifests, timestamps, append-only rules) | `references/artifact-layout.md` draft | S | — | NFR-5, FR-14 |
+| 1.3 | Specify each validator's input shape, verdict semantics, and edge cases (including the gate self-test and tooling shell-lint); define external-tool adapters, version preflight, and the tier-configuration file format | Validator/toolchain spec sheet + config schema | M | 1.1 | FR-8–FR-12, FR-18, NFR-3 |
+| 1.5 | Runtime-surface verification: confirm current Claude Code plugin/skill/command/hook conventions and Codex skill/agent/hook surfaces against live documentation; record the D-5 per-runtime packaging and invocation map | Verified invocation map in `docs/` | S | — | D-5, US-18 |
+| 1.4 | Review this plan + the user stories against the extracted references and the WP 1.5 map; resolve Q1/Q2 or record defaults; sign the design freeze | Signed freeze note in `docs/` | S | 1.1–1.3, 1.5 | SC-1–SC-4 |
+
+**Exit criteria:** references verified against `CADENCE_METHOD.md` v4.7 section by section (the Appendix A extract byte-identical, per AC-1.4); the invocation map recorded from live-documentation evidence; no unrecorded open design questions. (WP 1.5 is listed out of numeric order because it was added at v1.1 and work-package numbers, like all identifiers here, are never renumbered; the freeze WP 1.4 depends on it.)
+
+### 2.0 Skill core
+
+| WP | Work package | Deliverable | Effort | Depends on | Traces to |
+| --- | --- | --- | --- | --- | --- |
+| 2.1 | Write `SKILL.md`: a discovery `description` in the third person stating what the skill does and both when to invoke it and when not to, front-loading the trigger terms and kept within the 1024-character frontmatter limit (the primary skill-selection lever); the method §9 operating card as executable procedure (locate on both axes → act by zone); dispatch rules; hard rules; FR-16 inline-dispatch fallback; each bundled script marked run-to-execute versus read-as-reference | `SKILL.md` (< 500 lines, NFR-1) | M | 1.4 | FR-3, FR-16, US-2 |
+| 2.2 | Finalize the six reference files from the 1.x drafts; any reference file over 100 lines opens with a table of contents so a partial read still sees its full scope | `references/` final | S | 2.1 | FR-9–FR-11 |
+
+**Exit criteria:** dry read-through — a fresh agent given only `SKILL.md` + references states the correct next action for each phase/zone state without ambiguity (the ADWS WBS 2.0 test, reused).
+
+### 3.0 Scaffold & practitioner commands (non-phase)
+
+| WP | Work package | Deliverable | Effort | Depends on | Traces to |
+| --- | --- | --- | --- | --- | --- |
+| 3.1 | `/cadence:init`: scaffold seeding, idempotency, existing-governance detection, runtime capability report | Command + scaffold templates | M | 2.2 | FR-1, US-1 |
+| 3.2 | `/cadence:status`: zone/phase/manifest report, loose-pointer warnings, `--gates` tier rendering; read-only allowlist | Command | S | 3.1 | FR-2, FR-11, US-2 |
+| 3.3 | `cadence-librarian` agent: manifest stewardship (document-set rows, authority designation, version assertion) invoked by init/status/promote | Agent file | S | 3.1 | FR-1, FR-2, FR-5 |
+
+**Exit criteria:** init on an empty directory then status reports a valid scaffold; init re-run changes nothing, and init over a project carrying its own governance reports the divergence rather than replacing it (AC-1.1–1.2); the librarian refuses to designate two authority documents at seeding, with the AC-1.3 manifest-validator rejection demonstrated at 5.0's exit.
+
+### 4.0 Phase commands & phase agents
+
+| WP | Work package | Deliverable | Effort | Depends on | Traces to |
+| --- | --- | --- | --- | --- | --- |
+| 4.1 | `/cadence:frame` + `cadence-framer`: directed-mandate, verbal-mandate, and exploratory paths; catalyst document template | Command + agent | M | 2.2 | FR-4, US-3 |
+| 4.2 | `/cadence:assess` + `cadence-assessor`: three-channel discovery record, charter, baseline, RC-hypothesis structure, contradiction flagging | Command + agent | M | 4.1 | FR-4, US-4 |
+| 4.3 | `/cadence:innovate` + `cadence-innovator`: technique menu, option records with rejections, effort-vs-impact sort | Command + agent | S | 4.2 | FR-4, US-5 |
+| 4.4 | `/cadence:model` + `cadence-modeler`: escalation ladder from the Assess inventory, document-set proposal, authority designation, continue/pivot/stop record | Command + agent | M | 4.3 | FR-4, US-6 |
+| 4.5 | `/cadence:implement` + `cadence-implementer`: pilot plan structure, staged-rollout gating, ADWS task-contract handoff (X-1), operator controls | Command + agent | M | 4.4 | FR-4, FR-15, US-7 |
+| 4.6 | `/cadence:track` + `cadence-tracker`: baseline-faithful reporting, unproven-result honesty, `--reframe` loop into a new catalyst | Command + agent | S | 4.5 | FR-4, US-8 |
+
+**Exit criteria:** each phase agent, given a fixture input, produces its artifact in Draft with the phase's required structure present, and writes nothing outside its evidence directory (the ADWS WBS 4.0 test, adapted).
+
+### 5.0 Validators, hooks & tier configuration
+
+| WP | Work package | Deliverable | Effort | Depends on | Traces to |
+| --- | --- | --- | --- | --- | --- |
+| 5.1 | Build the deterministic validators: evidence-tag grammar, ID-namespace resolution, cross-reference integrity, revision-row immutability, loose-pointer drift, link integrity, quotation symmetry, render fidelity, manifest/registry consistency, the gate self-test, and the tooling shell-lint; add pinned external-tool adapters and version preflight | Node validators + external-tool adapters/preflight | L | 1.3 | FR-8–FR-10, FR-12, FR-18, NFR-3, US-12, US-13 |
+| 5.2 | Build frozen fixture packs per validator (pass/warn/fail + edge cases) and the local-CI parity runner | Fixture suites + runner, all green | M | 5.1 | FR-8, SC-4, US-12 |
+| 5.3 | Build advisory hooks: Draft-zone pre-write annotation (tag hints, quotation flags, broken links, derived-render warning), Approved-zone write warning; degradation semantics | Hook scripts | M | 5.1 | FR-7, NFR-6, US-11 |
+| 5.4 | Implement the tier-configuration file + its validator (block only at promotion boundaries) | Config + validator + fixtures | S | 5.1 | FR-11, US-16 |
+
+**Exit criteria:** all fixtures byte-identical across two consecutive CI runs; a hook failure demonstrably lets a Draft write proceed with the degradation reported, and the same condition is emitted as `fail` by the validator run standalone. The promotion-refusal half of AC-11.3 is demonstrated at 6.0's exit, once `/cadence:promote` exists.
+
+### 6.0 Promotion, consensus & reporting
+
+| WP | Work package | Deliverable | Effort | Depends on | Traces to |
+| --- | --- | --- | --- | --- | --- |
+| 6.1 | `/cadence:gate` (standalone advisory run) + the promotion report script: append-only evidence tree, per-verdict exit codes, stated-limits footer | Command + report script | M | 5.1, 5.2 | FR-14, FR-17, NFR-6, US-15 |
+| 6.2 | `cadence-critic`, `cadence-advocate`, `cadence-grader` agents: fresh-context briefing preambles, verbatim findings/dissent recording, advisory-report integration, optional human-hold flow, and per-criterion coverage verdicts with visible skipped-review handling | 3 agent files | M | 2.2, 6.1 | FR-13, FR-19, US-14, US-19 |
+| 6.3 | `/cadence:promote`: Draft → Candidate (full gate, `git mv`, atomic commit, exemption path) and `--finalize` Candidate → Approved (clean-room re-run, freeze, recorded rollback) | Command | L | 6.1, 6.2 | FR-5, FR-6, NFR-4, US-9, US-10 |
+| 6.4 | Resume/cancel semantics: interrupted-run recovery from the evidence tree; override recording (actor/reason/effect) across all commands | Cross-cutting updates | M | 6.3 | FR-15, US-17 |
+
+**Exit criteria:** a seeded-defect artifact fails promotion with the defect identified and nothing committed; the fixed artifact promotes with one commit; model dissent remains verbatim and advisory, while a separately recorded human hold demonstrably blocks until human resolution (AC-9.1–AC-9.5, AC-14.1).
+
+### 7.0 Integration drills & acceptance (release 1 gate)
+
+| WP | Work package | Deliverable | Effort | Depends on | Traces to |
+| --- | --- | --- | --- | --- | --- |
+| 7.1 | End-to-end drill: `/cadence:init` → full six-phase cycle on a real small work item → one artifact promoted to Approved, repeated across the model tiers the skill is intended to run under (the `SKILL.md` and phase-agent surfaces are model-sensitive; the deterministic validators are not) | Retained drill evidence, one set per tier | M | 3.0–6.0 | SC-1 |
+| 7.2 | Gate-failure drills: one seeded defect per SC-2 class, each shown red-for-the-right-reason then green on fix | Drill evidence | M | 6.3 | SC-2, pattern 7 |
+| 7.3 | Advisory-drafting drill: high-frequency Draft writes with hooks active; verify zero blocks and measure hook latency and gate wall-clock using NFR-2's recorded host/toolchain, warm-ups, sample sizes, and percentile method | Drill evidence + reproducible timings | S | 5.3, 6.1 | SC-3, NFR-2, R-8 |
+| 7.4 | Acceptance review: every `AC-` walked against drill evidence; the model tiers the drills covered recorded; Critic/Advocate findings retained as advisory input (A-4); gaps filed; human sign-off recorded | Sign-off note | S | 7.1–7.3 | All US, SC-4, R-7 |
+
+**Exit criteria:** SC-1 through SC-4 demonstrated with replayable evidence; unresolved gaps recorded as scope items, not waved through (`P2`: missing evidence blocks completion claims). Sequencing note: individual drills may begin as soon as their own listed dependencies pass (7.2 after 6.3; the hook-latency half of 7.3 after 5.3, the gate wall-clock half after 6.1); **WP 7.4 is the aggregate acceptance gate** and requires all 3.0–6.0 exit criteria met and all drills complete.
+
+### 8.0 Codex parity (release 2)
+
+| WP | Work package | Deliverable | Effort | Depends on | Traces to |
+| --- | --- | --- | --- | --- | --- |
+| 8.1 | Build the Codex packaging per the WP 1.5 / D-5 verified map: repository skills under `.agents/skills/`, agents under `.codex/agents/*.toml`, hooks via `.codex/hooks.json`, generated or maintained from the Claude Code sources where formats allow (the spec-driven-docs dual-surface layout as precedent); re-verify surface conventions against live documentation before building and update the invocation map with any divergence | Codex packaging + updated invocation map | M | 7.4, 1.5 | US-18, D-5 |
+| 8.2 | Parity harness: shared validator fixtures + gate drills run under both runtimes' invocation paths, verdicts diffed; canonical-name preservation check | Parity report, all-identical | M | 8.1 | SC-5, AC-18.2–18.3 |
+| 8.3 | Codex field run: one real cycle (init → phase → promote) under Codex; findings filed and resolved | Field-run record | M | 8.2 | SC-5 |
+
+**Exit criteria:** SC-5 demonstrated; any deliberate divergence documented with rationale (never silent).
+
+### 9.0 Pilot & re-measure (ongoing; method §7 Phase 5)
+
+| WP | Work package | Deliverable | Effort | Depends on | Traces to |
+| --- | --- | --- | --- | --- | --- |
+| 9.1 | Pilot the runtime on the next real CADENCE engagement; record drafting-speed observations and promotion-gate catches | Pilot record | ongoing | 7.4 | SC-1, R-1, R-6 |
+| 9.2 | Review advisory noise, gate catch-rate, and tier configuration on pilot evidence; prune or re-tier checks with recorded rationale; revisit Q3 (metering) | Tier-review note | S | 9.1 | R-1, R-6, Q3 |
+
+**Exit criteria:** the method §7 Phase 5 balance shown on real evidence — drafting fast *and* the promotion gate catching what always-on enforcement used to catch. This is `P7` applied to the runtime itself: readiness proven by measurement, not by the elegance of the design.
+
+### Dependency summary
+
+```
+1.0 ──► 2.0 ──┬─► 3.0 ──────────────────┐
+              └─► 4.0 ──────────────────┤
+1.0 ──► 5.0 (5.1 after 1.3) ────────────┤
+              5.2–5.4 after 5.1         ├─► 7.0 ──┬─► 8.0
+        2.0 ──► 6.2 ───┐ (after 6.1)    │         └─► 9.0
+        5.0 ──► 6.1 ───┴─► 6.3 ──► 6.4 ─┘
+```
+
+5.0 starts from WP 1.3 and runs in parallel with 3.0/4.0; 6.0 needs both the skill core and the validators; individual 7.x drills start when their own dependencies pass, and 7.4 (the aggregate gate) requires all 3.0–6.0 exit criteria. 9.0 follows release-1 acceptance (WP 7.4) and does not wait on release 2. The diagram is drawn at package level, so WP 8.1's second dependency — the WP 1.5 invocation map it builds against — is named in its Depends-on cell rather than drawn as an arrow. **Release 1 effort: ~24–27 working-day equivalents summed sequentially** from the S/M/L values of WBS 1.0–7.0. The listed dependencies and midpoint effort values produce a **baseline critical-path estimate of ~11–13 working days** for 1.0 → 5.1 → 5.2 → 6.1 → 6.2 → 6.3 → (6.4 ∥ 7.2) → 7.1 → 7.4, in which 6.4 and 7.2 both follow 6.3 concurrently, WP 7.1 follows the last of the 3.0–6.0 exits its Depends-on cell requires, and 7.4 is the aggregate gate, assuming two tracks run concurrently after the design freeze (3.0/4.0 alongside 5.0) and 7.3 completes off-path. The **planning range is ~12–15 working days**, explicitly adding 1–2 days of integration and diagnostic contingency to that baseline. Agent execution may compress calendar time further but changes neither the dependency structure nor the operator-attended drills. **Release 2 adds ~3 working-day equivalents** for its three M packages; any contingency is tracked separately rather than embedded in the effort total.
+
+---
+
+## 9. Milestones & release gates
+
+| Milestone | Contents | Gate |
+| --- | --- | --- |
+| **M1 — Design freeze** | 1.0 complete | References verified against method v4.7; freeze signed (WP 1.4) |
+| **M2 — Advisory runtime** | 2.0–5.0 complete | Everything usable with zero blocking behavior anywhere — mirrors method §7 Phase 1: advisory first, measured before enforcement returns |
+| **M3 — Release 1 (governed runtime)** | 6.0–7.0 complete | SC-1–SC-4 demonstrated with replayable drill evidence |
+| **M4 — Release 2 (parity)** | 8.0 complete | SC-5 demonstrated |
+| **M5 — Validated** | 9.0 measured | Method §7 Phase 5 balance shown on pilot evidence (`P7`) |
+
+**Resourcing.** Solo operator directing coding agents; agent execution compresses the S/M/L calendar estimates substantially but does not change the dependency structure or the drill requirements. The drills (7.x) and acceptance review (7.4) require operator attention and are not delegated end-to-end.
+
+---
+
+## 10. Conflict resolution record
+
+The record the authority declaration binds to. When this plan and the companion user-stories document (or any later companion) disagree, the conflict is resolved here and this record governs; the disagreeing text is corrected in the next revision of the affected document, with the row retained. Rows are append-only.
+
+| ID | Date (UTC) | Documents | Disagreement | Resolution | Actor |
+| --- | --- | --- | --- | --- | --- |
+| CR-1 | 2026-08-04 | This plan v1.0 (X-3, FR-13) vs user stories v1.0 (US-14/AC-14.1) | Model review declared advisory-only in one place and automatically blocking in the other | Resolved per method §6.3: the deterministic gate is the only automatic block; Critic/Advocate/Grader are opt-in and human-gated — findings become recorded open items requiring human disposition. Both documents corrected at v1.1 (US-14 design rule; FR-13/FR-19/X-3). | Operator (from independent review finding 1) |
+| CR-2 | 2026-08-04 | This plan v1.1 (X-3, FR-13, FR-19) and user stories v1.1 (US-14, US-19) vs method §6.3 | v1.1 called model review advisory but made every adverse model finding a mandatory open item that stopped promotion, creating a functional model-controlled block | Clarified at v1.2: model findings remain verbatim, recorded, and visible but never change the deterministic verdict or stop promotion by themselves. A practitioner may create an explicit human hold; only that human decision blocks until human resolution. | Operator (from independent re-review) |
+| CR-3 | 2026-08-04 | This plan v1.1 (D-5 vs S-8) and user stories v1.1 (US-18/AC-18.1) | D-5 required a verified per-runtime invocation map, while S-8 and US-18 still required a literal Claude Code/Codex mirror | Resolved at v1.2 in favor of D-5: each runtime receives native packaging around shared validators, fixtures, references, and canonical evidence terms; the invocation map records all surface differences. | Operator (from independent re-review) |
+| CR-4 | 2026-08-04 | This plan v1.2 (FR-5) vs user stories v1.2 (AC-9.5, AC-17.2) | FR-5 stated that a failed gate commits nothing, admitting no exemption, while AC-9.5 required the recorded exemption as one of exactly two paths and AC-17.2 treated a gate exemption as a recordable override. No FR established the exemption path WP 6.3 was to build | Resolved at v1.3 in favor of the companion, which matches method §9 (*"fix the content or take a visible exemption — never route around it"*): FR-5 now carries the exemption path, its recording obligations, and its effect on the commit. | Operator (from independent accuracy review) |
+| CR-5 | 2026-08-04 | This plan v1.2 (S-6) vs user stories v1.2 (US-1) | The two documents enumerated different `/cadence:init` scaffold contents in both directions: US-1 named an ID-namespace reference and agent/hook/command registrations that S-6 omitted; S-6 named an evidence root that US-1 omitted | Resolved at v1.3 by union, which matches method §3.6: S-6 gains the ID-namespace reference and the registrations, US-1 gains the evidence root. AC-1.1–AC-1.4 unchanged. | Operator (from independent accuracy review) |
+
+---
+
+## Appendix — Revision Record
+
+Rows are history: they record what was true when written, are excluded from version bumps, and are never rewritten.
+
+| Version | Date | Change |
+| --- | --- | --- |
+| v1.0 | 2026-08-04 | Initial draft. Charter, scope (S-1–S-8 / X-1–X-6), requirements (FR-1–FR-17, NFR-1–NFR-6), architecture and design decisions, assumptions A-1–A-6, risks R-1–R-8, open questions Q1–Q3, and a nine-phase WBS with milestones, sequenced on the method's §7 adoption logic (advisory before enforcement, promotion gate before clean-room, measurement last). Declared the authority document for the project, with `US-`/`AC-` definitions delegated to the companion `CADENCE_AUTOMATION_USER_STORIES.md` v1.0. |
+| v1.1 | 2026-08-04 | Corrections from an independent review (11 findings, all accepted). **(1)** Review-tier contradiction resolved per §6.3 — deterministic gate is the only automatic block; FR-13 and X-3 restated as opt-in/human-gated; conflict recorded as CR-1 in the new §10. **(2)** Gate completed to the full §6.1 set — render fidelity, gate self-test, and tooling shell-lint added to S-5, SC-2, WP 5.1, and new FR-18. **(3)** Packaging made a verified mapping — new D-5 (Claude Code plugin `cadence`; Codex `.agents/skills` / `.codex/agents` / `.codex/hooks.json`; no assumed mirror), new WP 1.5 runtime-surface verification gating the freeze, WP 8.1 rewritten. **(4)** Effort reconciled — ~24–27 sequential working-day equivalents; ~13–15 elapsed with concurrency and critical-path assumptions stated. **(5)** FR-6 restated: Approved is frozen by policy with content-hash tamper detection, not claimed filesystem immutability. **(6)** §10 conflict resolution record added with schema (defines the `CR-` namespace); authority declaration now points to it. **(7)** New FR-19 (Grader contract) tracing to new US-19; Q1 trace corrected to AC-19.2; WP 6.2 traces widened. **(8)** NFR-2 given numeric budgets (gate ≤ 30 s; advisory p95 < 1 s) on a named host and corpus. **(9)** Charter negatives scoped to the inspected source set. **(11)** 7.x drill sequencing clarified (7.4 is the aggregate gate). Finding 10 (traceability intro) landed in the companion's v1.1. No existing identifier renumbered or reused; WP 1.5 appears out of numeric order by design. |
+| v1.2 | 2026-08-04 | Final reconciliation and enterprise-readiness polish following independent re-review. **Advisory semantics:** CR-2 corrects the v1.1 functional block — Critic, Advocate, and Grader findings are retained and surfaced but do not alter the deterministic verdict; only an explicit practitioner hold blocks. **Gate completeness:** cross-reference integrity is now a distinct S-5/WP 5.1 validator and the eleventh SC-2 seeded defect. **Runtime parity:** CR-3 reconciles S-8 and US-18 with D-5's runtime-native invocation map. **Reproducibility:** NFR-2 now specifies host/tool versions, warm-ups, samples, and nearest-rank p95; AC-11.1 and WP 7.3 trace to that method. **Dependencies:** NFR-1/NFR-3, A-3, WP 1.3, WP 5.1, and the package layout now distinguish Node-based core validators from required version-control, shell-lint, render, and conditional PDF-extraction tools with preflight and closed promotion degradation. **Planning accuracy:** release 1 remains ~24–27 day-equivalents; baseline critical path is ~11–13 days and the ~12–15 planning range now identifies its 1–2 day contingency; release 2 is ~3 day-equivalents. **Claim precision:** the charter's negative finding is bounded to three named repositories; Approved-state checking is termed integrity-drift detection; SC-3 and WBS exit language are measurable and non-model-blocking. No identifier was renumbered or reused; prior revision rows remain unchanged. |
+| v1.3 | 2026-08-04 | Corrections from an independent accuracy and proofreading review (40 findings, all accepted). **Blocking-scope corrected:** FR-6 no longer assigns a blocking verdict to `/cadence:status` or to standalone `/cadence:gate` runs — the integrity-failure verdict is advisory there and blocking only inside `/cadence:promote`, restoring agreement with FR-2, FR-11, D-2, AC-2.3, and AC-16.1. **Gate exemption established:** FR-5 now carries the exemption path that WP 6.3 builds and AC-9.5 requires (CR-4). **Verdict set defined:** FR-14 defines the closed `promote` \| `retry` \| `quarantine` set the report script emits, which no document previously enumerated. **Sequencing:** WBS 5.0's exit criterion no longer requires a blocked promotion before `/cadence:promote` exists; WBS 3.0's defers the AC-1.3 validator rejection to 5.0; WP 6.2 depends on 6.1 and WP 7.3 on 6.1. **Identifier resolution:** the `D-` and `CR-` namespaces are declared; the bare `F-11` token resolves to FR-16 at each use; method-section pointers are prefixed *method* wherever they could collide with this plan's own §1–§10. **Scope reconciliation:** S-6 aligned with US-1 (CR-5); S-5 and FR-18 relabelled to distinguish method §6.1's Candidate set from this runtime's three explicit additions; the charter's success-criteria lead-in scopes SC-5 to WBS 8.0. **Method fidelity:** FR-13 and Q1 record the Draft → Candidate review-tier placement as a divergence from method §6.3. **Traceability:** NFR-4 and NFR-6 gain owning packages; WP 3.3 gains FR-2; WP 5.1/5.2 gain `US-` traces; WP 7.4 gains SC-4. **Planning accuracy:** the dependency diagram is redrawn so every arrow matches a Depends-on cell (9.0 branches from 7.0, not 8.0; the 6.x chain feeds 7.0); the critical-path chain shows 6.4 and 7.2 as concurrent siblings, which is what reproduces the published ~11–13 days; the effort total is scoped to WBS 1.0–7.0. **Claim precision:** A-4 no longer offers model review "in place of a second human"; R-3's unretrievable run citation and three unowned risk-mitigation clauses are removed. Editorial fixes to SC-2, SC-4, S-2, X-4, D-2, and the §6/§7 section rules. No identifier was renumbered or reused; prior revision rows remain unchanged. |
+| v1.4 | 2026-08-04 | Correction from a follow-up accuracy review of the §8 critical path. **Critical-path chain completed:** the baseline chain and the dependency diagram omitted WP 6.2, which the WBS table and the v1.3 dependency change place on the critical path (6.2 depends on 6.1; 6.3 depends on 6.2). The chain now reads 1.0 → 5.1 → 5.2 → 6.1 → 6.2 → 6.3 → (6.4 ∥ 7.2) → 7.4, and the diagram annotates 6.2 as following 6.1. Including 6.2's midpoint day is what reproduces the published ~11–13 working-day baseline and the derived ~12–15 planning range, so no estimate changed. No identifier was renumbered or reused; prior revision rows remain unchanged. |
+| v1.5 | 2026-08-04 | Agent Skills standards-conformance pass, benchmarking the design against the Anthropic and OpenAI Agent Skills authoring standards and adopting three recommendations (the full review is recorded alongside this set in `CADENCE_AUTOMATION_SKILL_STANDARDS_REVIEW.md`). **SKILL.md description (G1):** WP 2.1 now specifies a third-person `description` that states what the skill does and both when to and when not to invoke it, front-loads the trigger terms, and stays within the 1024-character frontmatter limit — the primary skill-selection lever. **Execute-vs-read intent and reference navigation (G4):** WP 2.1 marks each bundled script run-to-execute versus read-as-reference, and WP 2.2 requires a table of contents atop any reference file over 100 lines. **Multi-model coverage (G3):** WP 7.1 repeats the end-to-end drill across the model tiers the skill is intended to run under, and WP 7.4 records the tiers covered. The composability watch-item (keep `SKILL.md` a thin orchestrator) and the evaluations-first sequencing note are retained in the review as advisory and not adopted here. No requirement, scope, or estimate changed; no identifier was renumbered or reused; prior revision rows remain unchanged. |
+| v1.6 | 2026-08-04 | Corrections from a follow-up accuracy review of the v1.5 set (six findings and three editorial items accepted; one cosmetic item refuted on verification, the E2 shorthand "what-axis," which is the method's own usage at §2.4 and §6). **Critical path corrected:** the §8 baseline chain claimed WP 7.1 completed off-path, but 7.1's Depends-on cell is 3.0–6.0 and 7.4 depends on 7.1, so 7.1 cannot be skipped. The chain now reads 1.0 → 5.1 → 5.2 → 6.1 → 6.2 → 6.3 → (6.4 ∥ 7.2) → 7.1 → 7.4. Its midpoint total moves from 11.5 to 12.5 working days, which remains inside the published ~11–13 baseline and the derived ~12–15 planning range, so no estimate changed. **Design-freeze gating restated:** the status line gated build work other than WP 5.1–5.2 on signed WP 1.4, but WP 5.3 and 5.4 depend only on 5.1, so all of WBS 5.0 starts from the WP 1.3 spec sheet — the line now says 5.0, matching §8. **Citations corrected:** FR-14's `quarantine` definition cited NFR-6 for the degrade-closed rule, which NFR-6 does not state; it now cites FR-7 and NFR-3, with NFR-6 carrying the skipped-never-passed obligation. WBS 3.0's exit criterion carried its AC-1.1–1.2 citation on the two-authority clause, which is AC-1.3's subject; the citation now sits on the idempotency and existing-governance clauses it covers, and the existing-governance condition AC-1.2 requires is stated rather than implied. **Companion correction (CR-4 follow-through):** AC-9.3 asserted unconditionally that a failed gate commits nothing, contradicting the exemption path FR-5 and AC-9.5 establish; it now qualifies the atomicity claim and points to AC-9.5. **Correction to the v1.3 row, which is history and is not rewritten:** that row says S-5 was relabelled to distinguish method §6.1's Candidate set from "this runtime's three explicit additions." S-5 named **four** — ID-namespace resolution, quotation symmetry, loose-pointer drift, and promotion-report generation — at v1.3 and still does; the row's count was wrong when written and the text it describes was right. The same row's British "relabelled" is likewise left standing rather than swept. **Editorial:** the 6.0 exit criterion no longer sets `AC-9.1–AC-9.5` in code type while its neighbour AC-14.1 is plain; §8 notes that the package-level diagram does not draw WP 8.1's second dependency on the WP 1.5 map; the companion's US-1 says "Directives template," matching S-6. No requirement, scope, or estimate changed; no identifier was renumbered or reused; prior revision rows remain unchanged. |
+| v1.7 | 2026-08-05 | **Records correction — the revision-record timebase.** The front matter declares **Date** in UTC, but the v1.5 and v1.6 rows were stamped from a local clock (America/Los_Angeles) and read 2026-08-04, while both passes landed on 2026-08-05 UTC: `233dcff` at 00:16 UTC and `ff6bacd` at 02:44 UTC. Read as UTC, those two rows date their own passes to a day that had not started. **Rows v1.0–v1.4 are correct as written** and are not touched — `0dc9583` (20:27 UTC), `7caee3d` (21:53 UTC), and `2d459e2` (23:45 UTC) all landed on 2026-08-04 UTC. The §10 `CR-` rows are correct for the same reason: all five were written by v1.3, before the local and UTC dates diverged. **Corrected by appending, not by rewriting** — rows are history, so v1.5 and v1.6 stand unchanged and become readable once the record says which clock they came from. Every row from this one on is stamped from a UTC clock, which is the discipline NFR-5 already requires of run evidence and which this record was not applying to itself. The front-matter **Date** row is ordinary metadata rather than an append-only row, so it is corrected in place to 2026-08-05 UTC. No requirement, scope, estimate, risk, decision, story, criterion, or work package changed, and no identifier was renumbered or reused; the design-freeze readiness recorded at v1.6 is unaffected. |
