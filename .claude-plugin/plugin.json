@@ -1,0 +1,4 @@
+{
+  "name": "cadence",
+  "description": "Executable runtime for the CADENCE agentic-engineering method: phase commands, advisory drafting hooks, and a deterministic promotion gate."
+}

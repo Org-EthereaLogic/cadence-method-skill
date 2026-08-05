@@ -1,5 +1,30 @@
 # macOS
 .DS_Store
 
-# ADWS pipeline scratch (evidence trees live outside the repo; never commit)
+# ADWS pipeline scratch (evidence trees live outside the repo; never commit).
+# This is pipeline scratch, distinct from drills/, which is retained history — see below.
 /artifacts/
+
+# Node toolchain
+node_modules/
+npm-debug.log*
+.npm/
+*.log
+
+# Secrets — never committed (NFR-4). The cheap half of the control whose expensive half is
+# the credential scan in scripts/guardrails-check.sh.
+.env
+.env.*
+!.env.example
+
+# Claude Code local state
+.claude/settings.local.json
+.claude/agent-memory/
+# Agent-created worktrees. .git/info/exclude already covers these on this machine, but that
+# file is not shared with clones or with the agents that create them.
+.claude/worktrees/
+
+# Deliberately NOT ignored — stated so a future cleanup pass does not tidy them away:
+#   drills/    retains append-only run evidence in the repository by design (S-7, NFR-5)
+#   fixtures/  holds the frozen packs that pin every validator byte-for-byte (FR-8, SC-4)
+# Neither is scratch.

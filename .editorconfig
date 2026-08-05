@@ -1,0 +1,23 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# A Markdown hard line break is two trailing spaces; trimming them changes rendering.
+[*.md]
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab
+
+# Read-only vendored snapshot of method v4.7 (D-4). AC-1.4 requires the Appendix A extract to
+# be byte-identical to this source, and an editor silently trimming whitespace or appending a
+# final newline is a realistic way to break that guarantee.
+[docs/reference/source/**]
+trim_trailing_whitespace = false
+insert_final_newline = false

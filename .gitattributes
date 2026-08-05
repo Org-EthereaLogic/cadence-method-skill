@@ -1,2 +1,12 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Vendored upstream — this repository does not author the method (D-4).
+# -text is the load-bearing half: linguist-vendored only affects language statistics, while
+# the inherited `* text=auto` above would otherwise let Git normalize line endings in the
+# snapshot whose bytes AC-1.4 pins.
+docs/reference/source/** linguist-vendored
+docs/reference/source/** -text
+
+# Attributes take effect only once committed; a file added before the rule lands keeps
+# whatever normalization it was checked in with.
