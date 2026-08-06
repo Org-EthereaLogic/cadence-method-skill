@@ -32,7 +32,7 @@ Safety and correctness → evidence traceability → security → simplicity and
 | `scripts/guardrails-check.sh` | This repository's own hygiene gate. Reads only; never writes, stages, or commits. | present |
 | `scripts/validators/` | Deterministic single-file Node validators, pinned by frozen fixtures. | forthcoming — WP 5.1 |
 | `scripts/adapters/` | Thin adapters and version preflight for declared external gate tools. | forthcoming — WP 5.1 |
-| `commands/` | Practitioner slash commands. The packaging surface is confirmed by WP 1.5. | forthcoming — WP 3.1 |
+| `skills/<action>/` | Practitioner slash commands, one per-action `SKILL.md` serving `/cadence:<action>`. The surface was confirmed by WP 1.5 and decided by Q5 — per-action skills, not `commands/*.md`. | forthcoming — WP 3.1 |
 | `agents/` | Phase, consensus, and steward agent definitions. | forthcoming — WP 3.3 |
 | `hooks/` | Advisory hooks. Advisory-only by construction (FR-7, D-2). | forthcoming — WP 5.3 |
 | `fixtures/` | Frozen per-validator fixture packs. Retained, not scratch. | forthcoming — WP 5.2 |

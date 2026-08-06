@@ -23,18 +23,18 @@ This repository is built by coding agents directed by a solo operator, through G
 | --- | --- |
 | 1.0 | `docs/design/`, `docs/` (`validator-spec-sheet.md` WP 1.3, `runtime-invocation-map.md` WP 1.5), `skills/cadence-method/references/` (WP 1.1, WP 1.2), and the repository root (WP 1.6) |
 | 2.0 | `skills/cadence-method/` |
-| 3.0 | `commands/`, `agents/` |
-| 4.0 | `commands/`, `agents/` |
+| 3.0 | `skills/<action>/`, `agents/` |
+| 4.0 | `skills/<action>/`, `agents/` |
 | 5.0 | `scripts/validators/`, `scripts/adapters/`, `fixtures/`, `hooks/` |
-| 6.0 | `commands/`, `agents/`, `scripts/` |
+| 6.0 | `skills/<action>/`, `agents/`, `scripts/` |
 | 7.0 | `drills/` |
 | 8.0 | `.agents/`, `.codex/` |
 
-Whether the practitioner surface ships as `commands/*.md` or as per-command skill files is a **WP 1.4 design-freeze decision**. WP 1.5 delivered the verified invocation map at `docs/runtime-invocation-map.md`, which supersedes the §4.1 layout sketch; it records that choice as an open divergence for the freeze rather than settling it, because deciding it inside a mapping work package would take a design-freeze decision. The invocation string `/cadence:<action>` is the same either way — only the packaged file differs.
+The practitioner surface ships as **per-action skills**, `skills/<action>/SKILL.md`, not as `commands/*.md`. That was **Q5**, resolved 2026-08-06 UTC against its pending default: the live documentation directs new plugins to `skills/`, `commands/` is the older of the two supported surfaces, and no action was built yet, so the migration cost was zero. The invocation string `/cadence:<action>` is unchanged by the choice — only the packaged file differs. See §7 of the authority document and `docs/runtime-invocation-map.md` §9(a).
 
 ## What is under configuration control
 
-The two governed design documents and their revision records; `SKILL.md` and its `references/`; `commands/`, `agents/`, and `hooks/`; every script under `scripts/`; the frozen fixture packs; the drill definitions and their retained evidence; and the plugin manifest. The vendored method snapshot is controlled read-only.
+The two governed design documents and their revision records; `SKILL.md` and its `references/`; the per-action `skills/<action>/` files, `agents/`, and `hooks/`; every script under `scripts/`; the frozen fixture packs; the drill definitions and their retained evidence; and the plugin manifest. The vendored method snapshot is controlled read-only.
 
 The set is chosen for adequate visibility at a manageable number of controlled items, not by controlling everything in the tree.
 
