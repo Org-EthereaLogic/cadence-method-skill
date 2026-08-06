@@ -21,7 +21,7 @@ This repository is built by coding agents directed by a solo operator, through G
 
 | WBS | Output path(s) |
 | --- | --- |
-| 1.0 | `docs/design/`, `docs/`, `skills/cadence-method/references/` (WP 1.1, WP 1.2), and the repository root (WP 1.6) |
+| 1.0 | `docs/design/`, `docs/` (`validator-spec-sheet.md` WP 1.3, `runtime-invocation-map.md` WP 1.5), `skills/cadence-method/references/` (WP 1.1, WP 1.2), and the repository root (WP 1.6) |
 | 2.0 | `skills/cadence-method/` |
 | 3.0 | `commands/`, `agents/` |
 | 4.0 | `commands/`, `agents/` |
@@ -30,7 +30,7 @@ This repository is built by coding agents directed by a solo operator, through G
 | 7.0 | `drills/` |
 | 8.0 | `.agents/`, `.codex/` |
 
-Whether the practitioner surface ships as `commands/*.md` or as per-command skill files is a WP 1.5 determination; the verified invocation map supersedes the §4.1 layout sketch.
+Whether the practitioner surface ships as `commands/*.md` or as per-command skill files is a **WP 1.4 design-freeze decision**. WP 1.5 delivered the verified invocation map at `docs/runtime-invocation-map.md`, which supersedes the §4.1 layout sketch; it records that choice as an open divergence for the freeze rather than settling it, because deciding it inside a mapping work package would take a design-freeze decision. The invocation string `/cadence:<action>` is the same either way — only the packaged file differs.
 
 ## What is under configuration control
 
