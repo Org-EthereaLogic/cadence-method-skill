@@ -45,6 +45,14 @@ The substantive content frozen here is the authority document as it stood at **v
 rows above name it. Later change to any frozen item lands as an appended Revision Record row in the owning
 document, never as a silent edit (R-4, FR-12).
 
+**Correction appended 2026-08-06 UTC — the `CR-` row undercounts.** It reads *CR-1 through CR-3*; §10 of the
+authority document carries **CR-1 through CR-5**, and all five were written by v1.3, well before this freeze. The
+frozen scope of the `CR-` namespace is therefore CR-1 through CR-5. The signed row above is left standing rather
+than rewritten, because this note's own rule is that a change lands by appending. Nothing about the freeze changes:
+CR-4 (FR-5's gate-exemption path) and CR-5 (the S-6 / US-1 scaffold union) were already in force at v1.3, neither
+was reopened, and no other row in this table is affected. Recorded with its sibling findings in the authority
+document's **v1.16** row.
+
 ---
 
 ## 2. Method integrity — VERIFIED
