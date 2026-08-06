@@ -612,7 +612,9 @@ The core validators need only Node and the working tree. The complete promotion 
 
 ## 6. Tier-configuration file format (FR-11)
 
-One project-visible file, `cadence/gate-tiers.json`, seeded by `/cadence:init` and rendered by `/cadence:status --gates` (AC-16.1). It lists every check against a tier drawn from the closed set `block | warn | guide` and the boundaries at which a `block` tier applies.
+One project-visible file, `cadence/gate-tiers.json`, seeded by `/cadence:init` and rendered by `/cadence:status --gates` (AC-16.1). It lists every check against a tier drawn from the closed set `block | warn | guide` and the boundaries at which a `block` tier applies, and it records the per-boundary review-tier defaults AC-14.2 requires.
+
+**Who builds which half.** The packaged template `/cadence:init` seeds from is authored by **WP 3.1** against the values below, which are frozen here and need no validator to exist (forthcoming — WP 3.1); the scaffold enumeration that obliges init to seed it is S-6. **WP 5.4** sets the final per-check tier values in that same template and builds the configuration validator (forthcoming — WP 5.4). Splitting it this way is why WP 3.1 does not wait on WP 5.4: the seed values are a specification output, not a validator output.
 
 ```json
 {
@@ -630,20 +632,27 @@ One project-visible file, `cadence/gate-tiers.json`, seeded by `/cadence:init` a
     "manifest-registry-consistency": { "tier": "block", "boundaries": ["draft-to-candidate", "candidate-to-approved"] },
     "gate-self-test":                { "tier": "block", "boundaries": ["draft-to-candidate", "candidate-to-approved"] },
     "tooling-shell-lint":            { "tier": "block", "boundaries": ["draft-to-candidate", "candidate-to-approved"] }
+  },
+  "review": {
+    "draft-to-candidate":    { "consensus": false, "grader": false },
+    "candidate-to-approved": { "consensus": false, "grader": false }
   }
 }
 ```
 
 **The two boundaries are the only place a `block` tier is valid.** They are named here exactly as `skills/cadence-method/references/zone-lifecycle.md` names them: **Draft → Candidate**, where the full deterministic gate may block, and **Candidate → Approved**, where the isolated clean-room re-run may block. The two `boundaries` values above are those same two boundaries in the filename-safe spelling `artifact-layout.md` already uses for its `<boundary>` path component — `draft-to-candidate` and `candidate-to-approved` — and no third value is admissible. A check carrying `"tier": "block"` with a boundary outside that set, or with an empty boundary list, is **itself a configuration-validation failure** (FR-11, D-2, AC-16.1). This is the structural half of D-2: blocking logic exists only inside the promote command's gate step, and the configuration cannot express blocking anywhere else.
 
-Four further rules the configuration validator enforces (forthcoming — WP 5.4).
+**The `review` block is where the opt-in review tier's default lives.** AC-14.2 requires the project configuration to record the consensus default per boundary and AC-19.2 requires the same of the Grader, both "inspectable via `/cadence:status --gates`" — and `--gates` renders this file, so this file is where they land. Its two keys are the same closed boundary set as everything above; each carries the two booleans `consensus` and `grader`. The seeded values are `false` at both boundaries: Q1 resolved to **opt-in everywhere** (§7 of the authority document), and AC-14.2's *recommended on for authority documents at Candidate → Approved* is a value a project sets for itself, not one the scaffold can set on its behalf — the schema has no document-class dimension and this sheet does not invent one. A `true` here is a recorded default, never a block: the review tier stays advisory under X-3 and FR-13 whatever this file says.
+
+Five further rules the configuration validator enforces (forthcoming — WP 5.4).
 
 - **The eleven keys are exactly the eleven checks.** A key naming no registered check, or a registered check with no key, is a failure — the same registry-agreement rule the gate self-test applies. The registered-check set is read from `scripts/validators/registry.json`, **never from the configuration under validation**: a missing check cannot be detected from the file that omits it, so the complete set has to come from somewhere the configuration does not control. This validator is not itself a registered check and does not appear in either file.
 - **A method-stated warn cannot be configured to block.** `loose-pointer-drift` may not carry `"tier": "block"` at any boundary; method §6.2 rule 1 is upstream of project configuration (D-4).
-- **`guide` is in the closed set and is not seeded here.** No Candidate-gate content check is tiered `guide` by the method (`skills/cadence-method/references/gate-checks.md`); the tier applies to the Draft-zone advisory lints, which are not gate checks.
-- **Tier changes are ordinary reviewed edits** to this file (AC-16.2), which is what gives the method §5 fail-to-warn downgrade an audit trail through version control instead of a code change.
+- **`guide` is in the closed set and is not seeded here — and a gate check carrying it is this validator's one `warn`.** No Candidate-gate content check is tiered `guide` by the method (`skills/cadence-method/references/gate-checks.md`); the tier applies to the Draft-zone advisory lints, which are not gate checks. `guide` is therefore a legal token in an illegal position: not an unknown token, so not the `fail` the rule above gives one, but not a tier any of the eleven should carry. That is what the validator's `warn` verdict is for, and it is the only condition that produces one. Naming it is what keeps the contracted `pass | warn | fail` set from carrying an unreachable slot with no documented falsifiability fixture behind it (AC-12.2, §7).
+- **The `review` block is validated, not merely tolerated.** Its two keys must be exactly the two boundaries, each carrying `consensus` and `grader` as booleans; a missing block, an unknown key, a missing boolean, or a non-boolean value is `fail`. Stating this is what stops the registry-agreement rule above from reading a legitimate `review` block as unknown content: the validator rejects unknown *check* keys, and `review` is not one.
+- **Tier changes are ordinary reviewed edits** to this file (AC-16.2), which is what gives the method §5 fail-to-warn downgrade an audit trail through version control instead of a code change. The same applies to a `review` default: turning consensus on at a boundary is a reviewed configuration edit, which is what makes it visible (AC-14.2).
 
-The seeded values above come from `gate-checks.md` for the eight checks the method states and from AC-9.2 for the three this runtime adds at the boundary. The **final** per-check tier values are WP 5.4's to set (forthcoming — WP 5.4).
+The seeded values above come from `gate-checks.md` for the eight checks the method states and from AC-9.2 for the three this runtime adds at the boundary; the seeded `review` values come from Q1's resolution. The **final** per-check tier values are WP 5.4's to set (forthcoming — WP 5.4).
 
 ## 7. Fixture-pack conventions (WP 5.2)
 
