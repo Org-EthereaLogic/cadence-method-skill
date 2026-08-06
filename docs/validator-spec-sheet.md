@@ -353,12 +353,12 @@ Resolves the artifact's links against the working tree (method §6.1, AC-9.2). O
 | `warn` | A link resolves to a path outside `project_root`, or uses an absolute filesystem path. It works on this host and is not portable. | `10` |
 | `fail` | A relative link target does not exist, or `options.follow_anchors` is `true` and an anchor names a heading absent from the target. | `20` |
 | `skipped: not-applicable` | The artifact contains no `](path)` link. | `30` |
-| `skipped: unavailable` | Recorded **per link** for every target whose scheme is in `options.external_schemes`: the core validators have no network access (NFR-3), so an external target is never fetched. Each is enumerated in `stated_limits`; the check's own `status` stays `ran` and its verdict is computed from local targets only. A green verdict never claims an external link resolves. | `30` when every link in the artifact is external |
+| `skipped: unavailable` | Recorded **per link** for every target whose scheme is in `options.external_schemes`: the core validators have no network access (NFR-3), so an external target is never fetched. Each is enumerated in `stated_limits`; the check's own `status` stays `ran` and its verdict is computed from local targets only. A green verdict never claims an external link resolves. | not emitted at check level — the per-link skip never becomes the check's own `status`, so the exit code follows the verdict computed from local targets |
 
 **Edge cases**
 
 - A backticked bare path in prose that does not exist on disk: expected `pass`. It is not a link (`CONTRIBUTING.md` convention), and treating it as one trains authors to stop backticking paths.
-- An artifact whose links are all external: expected `pass` with every target enumerated as skipped in `stated_limits`, and never a claim that they resolve.
+- An artifact whose links are all external: expected `pass` at exit `0`, with every target enumerated as skipped in `stated_limits` and never a claim that they resolve. **The check-level `status` stays `ran` and never becomes `skipped: unavailable`**, which is the one reading this row rules out: `unavailable` degrades closed (§2), so treating a wholly-external artifact that way would make it unpromotable for carrying no local link — a verdict about the artifact's *link style* rather than its integrity. The honesty NFR-6 requires is carried by `stated_limits` naming every unfetched target, not by withholding the verdict.
 - A `](path)` form inside a fenced block: example text, not a live link; excluded, with the exclusion recorded.
 
 **Frozen-fixture cases (WP 5.2)**
@@ -501,6 +501,10 @@ Verifies the project manifest against the governed tree (method §3.2, Appendix 
 
 Proves that each registered check still fires on a known-bad input (method §6.1, FR-18, SC-2, method pattern 7). This is the check that catches a silently disabled check, and it is the reason a green gate means something.
 
+**The registry is this check's deliverable.** `scripts/validators/registry.json` is built with the gate self-test (forthcoming — WP 5.1), because this is the check that reads it at runtime and whose `fail` condition *is* registry agreement. It carries one entry per registered gate check giving the check's slug, its script path, its fixture root, **the non-pass verdict its known-bad fixture must produce**, and the finding code that fixture must carry. Each of the other ten checks adds its own entry in the change that adds its script and fixtures; until they do, the registry is short and this check reports `skipped: not-applicable` per the row below. Two things read the registry: this check, and WP 5.4's tier-configuration validator, which resolves §6's registry-agreement rule against it (forthcoming — WP 5.4).
+
+**What the registry does not contain.** `scripts/validators/tier-config.js` and `fixtures/tier-config/` are WP 5.4's configuration validator (§6). It is not a Draft → Candidate gate check, carries no tier of its own, and is **not** registered — so the registry-and-fixture-root agreement rule below does not reach it, and a fixture directory belonging to a non-registered validator is not the "fixture set without a registry entry" this check fails on. The rule compares the registry against the fixture roots the registry names, not against every directory under `fixture_root`.
+
 **Input shape**
 
 ```json
@@ -634,7 +638,7 @@ One project-visible file, `cadence/gate-tiers.json`, seeded by `/cadence:init` a
 
 Four further rules the configuration validator enforces (forthcoming — WP 5.4).
 
-- **The eleven keys are exactly the eleven checks.** A key naming no registered check, or a registered check with no key, is a failure — the same registry-agreement rule the gate self-test applies.
+- **The eleven keys are exactly the eleven checks.** A key naming no registered check, or a registered check with no key, is a failure — the same registry-agreement rule the gate self-test applies. The registered-check set is read from `scripts/validators/registry.json`, **never from the configuration under validation**: a missing check cannot be detected from the file that omits it, so the complete set has to come from somewhere the configuration does not control. This validator is not itself a registered check and does not appear in either file.
 - **A method-stated warn cannot be configured to block.** `loose-pointer-drift` may not carry `"tier": "block"` at any boundary; method §6.2 rule 1 is upstream of project configuration (D-4).
 - **`guide` is in the closed set and is not seeded here.** No Candidate-gate content check is tiered `guide` by the method (`skills/cadence-method/references/gate-checks.md`); the tier applies to the Draft-zone advisory lints, which are not gate checks.
 - **Tier changes are ordinary reviewed edits** to this file (AC-16.2), which is what gives the method §5 fail-to-warn downgrade an audit trail through version control instead of a code change.
@@ -666,6 +670,7 @@ What this sheet does **not** settle, published alongside what it does.
 
 - **The `<work-item>` and `<artifact>` path components of the evidence tree.** Their format, character set, and source are not defined here. The gap is recorded as **Q4** in §7 of the authority document and resolves at the WP 1.4 design freeze; `skills/cadence-method/references/artifact-layout.md` is where it was first recorded. An implementer who needs a value takes it from Q4's stated default pending decision and brings any change back to WP 1.4 — choosing locally would give the validators and the report script two incompatible path schemes.
 - **The final per-check tier values.** §6's values are the seed; WP 5.4 sets the final ones (forthcoming — WP 5.4).
+- **The registry's own file format.** §4 fixes what `scripts/validators/registry.json` must carry per check and names the package that builds it; the JSON schema itself lands with that build (forthcoming — WP 5.1), because a schema written before the eleven entries exist would be pinning a guess.
 - **The concrete tool binaries and their pinned versions.** §5 binds four roles; WP 5.1 binds each role to a binary, in the same change as its NFR-3 entry (forthcoming — WP 5.1).
 - **The promotion report's own shape and its verdict exit codes.** Bounded by FR-14 and by `artifact-layout.md`, specified with the report script (forthcoming — WP 6.1).
 - **Every behavioral claim here is `unverified`.** No validator exists yet, so nothing in this sheet has been executed. These are requirements on an implementation, not observations of one; WP 5.1 makes them testable and WP 5.2 makes them pinned.
