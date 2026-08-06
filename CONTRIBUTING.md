@@ -23,9 +23,9 @@ This repository is built by coding agents directed by a solo operator, through G
 | --- | --- |
 | 1.0 | `docs/design/`, `docs/` (`validator-spec-sheet.md` WP 1.3, `runtime-invocation-map.md` WP 1.5), `skills/cadence-method/references/` (WP 1.1, WP 1.2), and the repository root (WP 1.6) |
 | 2.0 | `skills/cadence-method/` |
-| 3.0 | `skills/<action>/`, `agents/` |
+| 3.0 | `skills/<action>/`, `skills/cadence-method/scaffold/` (WP 3.1's seed templates, including the gate-tier configuration), `agents/` |
 | 4.0 | `skills/<action>/`, `agents/` |
-| 5.0 | `scripts/validators/`, `scripts/adapters/`, `fixtures/`, `hooks/` |
+| 5.0 | `scripts/validators/`, `scripts/adapters/`, `fixtures/`, `hooks/`, plus two narrow reaches outside them: WP 5.1's adapters package edits `docs/design/` to land its NFR-3 entry in the same change as its role bindings, and WP 5.4 edits `skills/cadence-method/scaffold/` to set the gate-tier file's final tier values |
 | 6.0 | `skills/<action>/`, `agents/`, `scripts/` |
 | 7.0 | `drills/` |
 | 8.0 | `.agents/`, `.codex/` |
