@@ -2,20 +2,19 @@
 
 **The WP 1.4 freeze note for release 1 (WBS 1.0–7.0)**
 
-> **DRAFT — NOT SIGNED.** This note is prepared for the operator's signature. It is not in force until §7 carries a
-> signature, an actor, and a UTC date. Every criterion now carries evidence; the one that was outstanding — §3, the
-> section-by-section reference verification — has been performed and is recorded at
-> `docs/design-freeze-reference-verification.md`, **awaiting the operator's acceptance**. Signing §7 accepts it.
+> **SIGNED — IN FORCE from 2026-08-06 UTC.** The design is frozen at the versions listed in §1. Every criterion
+> carries evidence; §3's reference-verification pass was accepted by the operator at signing. Later change to any
+> frozen item lands as an appended Revision Record row in the owning document, never as a silent edit (R-4, FR-12).
 
 | | |
 | --- | --- |
 | **Work package** | WP 1.4 — Design freeze (operator checkpoint, A-4) |
 | **Milestone gate** | M1 |
-| **Authority document** | `docs/design/CADENCE_AUTOMATION_PROJECT_PLAN_WBS.md` v1.14 |
+| **Authority document** | `docs/design/CADENCE_AUTOMATION_PROJECT_PLAN_WBS.md` v1.15 |
 | **Declared companion** | `docs/design/CADENCE_AUTOMATION_USER_STORIES.md` v1.9 |
 | **Governing method** | `CADENCE_METHOD.md` v4.7 (final), vendored read-only under `docs/reference/source/` |
 | **Prepared** | 2026-08-06 UTC |
-| **Status** | Draft — every criterion carries evidence; awaiting the §7 sign-off, which also accepts §3's pass |
+| **Status** | **Signed 2026-08-06 UTC** — M1 taken; see §7 |
 
 **What this note does.** It records the state the design is frozen in: which references were verified against the
 method and how, which runtime surfaces were verified against live documentation, how each open question was
@@ -32,17 +31,19 @@ requirement, decision, or question, the authority document holds the canonical d
 
 | Item | Frozen at |
 | --- | --- |
-| Requirements (`FR-`, `NFR-`) | authority document v1.14 |
-| Scope (`S-`, `X-`) | authority document v1.14, including S-4 as restated by Q6 |
-| Success criteria (`SC-`) | authority document v1.14 |
-| Design decisions (`D-`) | authority document v1.14, D-5 as corrected at v1.10 |
+| Requirements (`FR-`, `NFR-`) | authority document v1.15 |
+| Scope (`S-`, `X-`) | authority document v1.15, including S-4 as restated by Q6 |
+| Success criteria (`SC-`) | authority document v1.15 |
+| Design decisions (`D-`) | authority document v1.15, D-5 as corrected at v1.10 |
 | Conflict resolutions (`CR-`) | authority document §10, CR-1 through CR-3 |
 | User stories and criteria (`US-`, `AC-`) | companion v1.9, including AC-11.1 as restated by Q6 |
 | Work breakdown (`WP n.n`) | authority document §8 |
 | Runtime surfaces | `docs/runtime-invocation-map.md`, WP 1.5 |
 
-Later change to any frozen item lands as an appended Revision Record row in the owning document, never as a silent
-edit (R-4, FR-12).
+The substantive content frozen here is the authority document as it stood at **v1.14** and the companion at
+**v1.9**; **v1.15** adds only this freeze's own record and the Status change that follows from it, which is why the
+rows above name it. Later change to any frozen item lands as an appended Revision Record row in the owning
+document, never as a silent edit (R-4, FR-12).
 
 ---
 
@@ -62,11 +63,11 @@ v4.7 text as vendored, and D-4 holds: where a runtime reference and the method d
 
 ---
 
-## 3. References verified against method v4.7 section by section — **PERFORMED, AWAITING OPERATOR ACCEPTANCE**
+## 3. References verified against method v4.7 section by section — **ACCEPTED**
 
-The pass was run on 2026-08-06 UTC and recorded in full at `docs/design-freeze-reference-verification.md`. It is
-**not** self-certified: A-4 makes the operator the accepting reviewer, so the pass is a finding submitted for that
-review. This section is discharged when the operator accepts it, and signing §7 constitutes that acceptance.
+The pass was run on 2026-08-06 UTC and recorded in full at `docs/design-freeze-reference-verification.md`. It was
+not self-certified: A-4 makes the operator the accepting reviewer, so it was submitted as a finding for that review.
+**The operator accepted it on 2026-08-06 UTC**, at signing (§7). This section is discharged.
 
 Each reference was read against exactly the method sections its own header declares it distils, asking two
 questions — does it say what the method says, and where it quotes or cites the method, is the quotation actually
@@ -183,15 +184,16 @@ Signing asserts: the operator has reviewed the plan and the companion against th
 runtime invocation map; the resolutions in §6 are the operator's decisions, including the two consequences named
 there; and the design is frozen at the versions listed in §1.
 
-**Signing also accepts §3's verification pass** (`docs/design-freeze-reference-verification.md`) as the operator's
-own finding. If that pass is rejected instead, §3 reverts to outstanding and the freeze is not taken.
+**Signing accepted §3's verification pass** (`docs/design-freeze-reference-verification.md`) as the operator's own
+finding, including its two stated limits: the pass verifies fidelity to each reference's declared scope rather than
+whole-method coverage, and treats `artifact-layout.md` as specification rather than distillation.
 
 | | |
 | --- | --- |
-| **Actor** | _(name of the accepting reviewer — A-4: the solo operator is also the accepting reviewer)_ |
-| **Signature** | _(unsigned)_ |
-| **Date (UTC)** | _(stamped from `date -u +%F` at signing)_ |
-| **Freezes** | authority document v1.14, companion v1.9, method v4.7 |
+| **Actor** | Anthony Johnson II — the solo operator, who is also the accepting reviewer (A-4) |
+| **Signature** | Accepted and signed by the operator, recorded by the agent at the operator's explicit direction. The audit trail is this note's commit, SSH-signed by the operator's key (`git log --show-signature`); the operator's acceptance of §3 and resolution of Q1/Q2/Q4/Q5/Q6 are recorded across Revision Record rows v1.13, v1.14, and v1.15. |
+| **Date (UTC)** | 2026-08-06 |
+| **Freezes** | authority document v1.15, companion v1.9, method v4.7 |
 
 ---
 
