@@ -4,8 +4,8 @@
 
 > **Performed by:** coding agent, 2026-08-06 UTC, against `docs/reference/source/CADENCE_METHOD.md` v4.7 as vendored
 > (blob `a31bd491cb8d669265989efa3e37e680382ec130`, hash-verified by `scripts/guardrails-check.sh` check 3).
-> **Status:** awaiting operator acceptance. A-4 makes the operator the accepting reviewer; this pass is a finding
-> submitted for that review, not a self-certification.
+> **Status:** **ACCEPTED by the operator 2026-08-06 UTC**, at the signing of `docs/design-freeze.md` §7. A-4 makes
+> the operator the accepting reviewer; this pass was submitted as a finding for that review, not self-certified.
 > **Verdict:** all six references are **faithful to what each declares it distils**. Four observations recorded, none
 > blocking. No discrepancy was found between any reference and the method.
 
@@ -187,5 +187,6 @@ package that finalizes these references, which is why they still carry `Status: 
 
 ## Operator decision
 
-- [ ] **Accept** — §3 of the freeze note is discharged; record the result and proceed to signature.
-- [ ] **Reject** — state what needs re-checking or re-doing.
+- [x] **Accept** — recorded 2026-08-06 UTC by Anthony Johnson II. §3 of the freeze note is discharged, and the
+      freeze was signed on the same date. Accepted inclusive of the two stated limits above.
+- [ ] ~~Reject~~
