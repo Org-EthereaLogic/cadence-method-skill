@@ -3,8 +3,9 @@
 **The WP 1.4 freeze note for release 1 (WBS 1.0–7.0)**
 
 > **DRAFT — NOT SIGNED.** This note is prepared for the operator's signature. It is not in force until §7 carries a
-> signature, an actor, and a UTC date. One criterion is **not yet met** — see §3, which blocks signing. Everything
-> else below is recorded with the evidence that establishes it.
+> signature, an actor, and a UTC date. Every criterion now carries evidence; the one that was outstanding — §3, the
+> section-by-section reference verification — has been performed and is recorded at
+> `docs/design-freeze-reference-verification.md`, **awaiting the operator's acceptance**. Signing §7 accepts it.
 
 | | |
 | --- | --- |
@@ -14,7 +15,7 @@
 | **Declared companion** | `docs/design/CADENCE_AUTOMATION_USER_STORIES.md` v1.9 |
 | **Governing method** | `CADENCE_METHOD.md` v4.7 (final), vendored read-only under `docs/reference/source/` |
 | **Prepared** | 2026-08-06 UTC |
-| **Status** | Draft — awaiting §3 and the §7 sign-off |
+| **Status** | Draft — every criterion carries evidence; awaiting the §7 sign-off, which also accepts §3's pass |
 
 **What this note does.** It records the state the design is frozen in: which references were verified against the
 method and how, which runtime surfaces were verified against live documentation, how each open question was
@@ -61,40 +62,41 @@ v4.7 text as vendored, and D-4 holds: where a runtime reference and the method d
 
 ---
 
-## 3. References verified against method v4.7 section by section — **NOT YET PERFORMED**
+## 3. References verified against method v4.7 section by section — **PERFORMED, AWAITING OPERATOR ACCEPTANCE**
 
-**This criterion is not met, and it is the one item blocking signature.**
+The pass was run on 2026-08-06 UTC and recorded in full at `docs/design-freeze-reference-verification.md`. It is
+**not** self-certified: A-4 makes the operator the accepting reviewer, so the pass is a finding submitted for that
+review. This section is discharged when the operator accepts it, and signing §7 constitutes that acceptance.
 
-What exists today is *structural* verification, not section-by-section content verification. WP 1.1 (issue #2,
-PR #44) checked that each reference file exists, contains the structural elements named in its acceptance
-criteria — a section per phase, the three zones and two blocking boundaries, the §3.2 prefix table, each gate check
-mapped to a tier — and names the method version it distills. That is a real check and it passed. It is not the
-same as reading each reference against the method sections it claims to distill and confirming the distillation is
-faithful, which is what this criterion asks for.
+Each reference was read against exactly the method sections its own header declares it distils, asking two
+questions — does it say what the method says, and where it quotes or cites the method, is the quotation actually
+there?
 
-Two further facts bear on it:
+| Reference | Declares it distils | Verdict |
+| --- | --- | --- |
+| `phase-definitions.md` | method §2, §§2.1–2.6 | **PASS** — all six phase bodies verbatim, mechanically confirmed |
+| `zone-lifecycle.md` | method §6, §6.1 | **PASS** — both principles and the zone table verbatim |
+| `evidence-classes.md` | method Appendix A | **PASS** — byte-identical, SHA-256 match (§4) |
+| `id-namespaces.md` | method §3.2 | **PASS** — prefix table and stability rule verbatim |
+| `gate-checks.md` | method §6.1, §3.5, §5, §6.2 | **PASS** — all eight method attributions verified individually |
+| `artifact-layout.md` | method §3.4, §3.5 (`P5`) | **PASS** — declares itself specification; both attributions verified |
 
-- The six references carry **`Status: Draft reference (WBS 1.1)`** in their own headers, and name **WP 2.2** as the
-  package that finalizes them. A freeze may legitimately be taken over draft references, but the note should not
-  describe them as verified beyond what was done.
-- No retained evidence records a section-by-section pass. The only retained drill is `drills/wp-1.6-guardrails/`,
-  which exercises this repository's own check surface, not the references.
+**No discrepancy was found between any reference and the method.** Four observations are recorded — a consistent
+non-semantic label change in `phase-definitions.md`, a duplicated sentence in `zone-lifecycle.md`, §6.2's rules
+reaching the runtime inside `gate-checks.md` tier justifications rather than as a standalone topic, and
+`artifact-layout.md`'s stated limits still describing the `<work-item>` / `<artifact>` tokens as open now that Q4
+resolves them. **None blocks the freeze**; each is non-semantic, cosmetic, or a WP 2.2 finishing item.
 
-Each reference declares the sections it distils, so the comparison is well defined:
+**Two limits of the pass**, carried here so the signature is taken on accurate terms:
 
-| Reference | Declares it distils |
-| --- | --- |
-| `phase-definitions.md` | method §2, §§2.1–2.6 |
-| `zone-lifecycle.md` | method §6, §6.1 |
-| `evidence-classes.md` | method Appendix A |
-| `id-namespaces.md` | method §3.2 |
-| `gate-checks.md` | method §6.1, §3.5 |
-| `artifact-layout.md` | method §3.4, §3.5 (`P5`) |
+- It verifies **fidelity to declared scope**, not whole-method coverage. A method section no reference claims to
+  distil was not checked for. That is a different question, and this criterion does not ask it.
+- `artifact-layout.md` is runtime **specification** rather than distillation, and says so in its own header. For it
+  "faithful" means *does not contradict the method and attributes accurately* — a weaker and different claim than
+  the verbatim comparisons that carry the other five.
 
-**To meet this criterion**, each row must be read against its named method sections and the result recorded — pass,
-or a list of discrepancies. Per NFR-6 a check that was not run is `skipped` and is never counted as passed, so this
-section stays as written until that pass exists. `evidence-classes.md` is the one row already fully discharged, by
-§4 below.
+The six references remain **`Status: Draft reference`**, finalized by WP 2.2. This freeze fixes their content as the
+basis for build work; it does not assert they are final (see §9).
 
 ---
 
@@ -181,8 +183,8 @@ Signing asserts: the operator has reviewed the plan and the companion against th
 runtime invocation map; the resolutions in §6 are the operator's decisions, including the two consequences named
 there; and the design is frozen at the versions listed in §1.
 
-**Signing is blocked until §3 is discharged.** A signature over §3 as it stands would assert a verification that
-was not performed, which is the failure `P2` and NFR-6 exist to prevent.
+**Signing also accepts §3's verification pass** (`docs/design-freeze-reference-verification.md`) as the operator's
+own finding. If that pass is rejected instead, §3 reverts to outstanding and the freeze is not taken.
 
 | | |
 | --- | --- |
@@ -202,7 +204,9 @@ WBS 1.6 were never gated on it and are already open; 1.6 is complete.
 
 - The six runtime references are **draft** (`WBS 1.1`) and are finalized by WP 2.2. This freeze fixes their
   content as the basis for build work; it does not assert they are final.
-- §3's verification is outstanding, and §4 discharges only the `evidence-classes.md` row of it.
+- §3's verification pass verifies **fidelity to each reference's declared scope**, not whole-method coverage, and
+  treats `artifact-layout.md` as specification rather than distillation. Both limits are stated in §3 and in the
+  pass itself. It is a point-in-time pass against method v4.7 at blob `a31bd491`; re-vendoring invalidates it.
 - The runtime invocation map is a dated snapshot of surfaces that move. Four Codex surfaces remain unverified and
   are recorded as open items; WP 8.1 re-verifies before building.
 - AC-1.4's automated scaffold-seed comparison belongs to WP 3.1 and is not performed here (§4).
