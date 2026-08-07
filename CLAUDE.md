@@ -28,12 +28,12 @@ Safety and correctness → evidence traceability → security → simplicity and
 | `docs/reference/source/` | Read-only vendored snapshot of method v4.7. Never edited here. An upstream advance lands as a dedicated re-vendor commit updating both the recorded version and the pinned hashes in that directory's README. | present |
 | `skills/cadence-method/references/` | Runtime context payload loaded into an agent's context and budgeted by NFR-1 — not documentation, and not subject to documentation conventions. Polishing these files inflates the context budget NFR-1 exists to protect. | present |
 | `skills/cadence-method/SKILL.md` | The orchestrator operating contract, under 500 lines. | present |
-| `skills/cadence-method/scaffold/` | Seed templates `/cadence:init` copies into a governed project — Constitution, Directives, manifest, and the gate-tier configuration (S-6). Written by two packages: WP 3.1 authors them, WP 5.4 sets the gate-tier file's final tier values. | forthcoming — WP 3.1 |
+| `skills/cadence-method/scaffold/` | Seed templates `/cadence:init` copies into a governed project — Constitution, Directives, manifest, the gate-tier configuration, and the agent/hook/command registrations (S-6). Written by two packages: WP 3.1 authored them; WP 5.4 sets the gate-tier file's final tier values. The two seeded references are not duplicated here — init copies them from `references/`, which is what makes AC-1.4's byte identity structural. | present — WP 3.1 |
 | `.claude-plugin/plugin.json` | Plugin manifest. Establishes the `/cadence:*` namespace. Only `plugin.json` belongs in this directory. | present |
 | `scripts/guardrails-check.sh` | This repository's own hygiene gate. Reads only; never writes, stages, or commits. | present |
 | `scripts/validators/` | Deterministic single-file Node validators, pinned by frozen fixtures. | forthcoming — WP 5.1 |
 | `scripts/adapters/` | Thin adapters and version preflight for declared external gate tools. | forthcoming — WP 5.1 |
-| `skills/<action>/` | Practitioner slash commands, one per-action `SKILL.md` serving `/cadence:<action>`. The surface was confirmed by WP 1.5 and decided by Q5 — per-action skills, not `commands/*.md`. | forthcoming — WP 3.1 |
+| `skills/<action>/` | Practitioner slash commands, one per-action `SKILL.md` serving `/cadence:<action>`. The surface was confirmed by WP 1.5 and decided by Q5 — per-action skills, not `commands/*.md`. | `skills/init/` present — WP 3.1; the other nine forthcoming — WP 3.2, WBS 4.0, WP 6.1, WP 6.3 |
 | `agents/` | Phase, consensus, and steward agent definitions. | forthcoming — WP 3.3 |
 | `hooks/` | Advisory hooks. Advisory-only by construction (FR-7, D-2). | forthcoming — WP 5.3 |
 | `fixtures/` | Frozen per-validator fixture packs. Retained, not scratch. | forthcoming — WP 5.2 |
