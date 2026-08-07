@@ -126,7 +126,9 @@ words, and none may be added.
 In Draft this degrades **open**: `/cadence:init` completes, the degradation is reported,
 and nothing blocks (FR-7, AC-11.3, design decision D-2). The degrade-**closed** half — an
 unresolved required role reaching FR-14's `quarantine` verdict — belongs to the promotion
-boundary, not to `/cadence:init` (forthcoming — WP 6.2).
+boundary, not to `/cadence:init`. The verdict itself is emitted by the promotion report
+script (forthcoming — WP 6.1); the boundary that refuses on it is `/cadence:promote`
+(forthcoming — WP 6.3).
 
 ## Stated limits
 
