@@ -148,12 +148,12 @@ read the exit code / stdout of, never merely to read.
 | `references/gate-checks.md` | read-as-reference | present (final — WP 2.2) |
 | `references/artifact-layout.md` | read-as-reference | present (final — WP 2.2) |
 | `references/id-namespaces.md` | read-as-reference | present (final — WP 2.2) |
-| `scripts/validators/*` | run-to-execute | forthcoming (WP 5.1) — deterministic per-check `pass \| warn \| fail` scripts, pinned by fixtures |
+| `scripts/validators/*` | run-to-execute | present in part (WP 5.1) — `gate-self-test.js` + the check `registry.json` landed via #21; the remaining WP 5.1 checks forthcoming — deterministic per-check `pass \| warn \| fail` scripts, pinned by fixtures |
 | `scripts/adapters/*` | run-to-execute | forthcoming (WP 5.1) — thin adapters/preflight for declared external gate tools |
 | The FR-14 promotion report script (`/cadence:gate`, `/cadence:promote`) | run-to-execute | forthcoming (WP 6.1) — computes the `promote \| retry \| quarantine` verdict over the evidence tree |
 
 None of the six `references/*.md` files is ever executed, and none of the three
-forthcoming script surfaces is ever treated as read-only prose — a reference informs
+run-to-execute script surfaces is ever treated as read-only prose — a reference informs
 judgment; a script's exit code and output are the evidence a verdict is computed from
 (§3's "verdicts from evidence" rule).
 
