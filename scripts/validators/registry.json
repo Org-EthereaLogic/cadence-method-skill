@@ -1,0 +1,14 @@
+{
+  "schema": "cadence.validator-registry.v1",
+  "checks": [
+    {
+      "slug": "gate-self-test",
+      "script_path": "scripts/validators/gate-self-test.js",
+      "fixture_root": "fixtures/gate-self-test/",
+      "known_bad_case": "fail-check-silently-disabled",
+      "verdict": "fail",
+      "finding_code": "check-did-not-fire",
+      "edge_fixtures": []
+    }
+  ]
+}

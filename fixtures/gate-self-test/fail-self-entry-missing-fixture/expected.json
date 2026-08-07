@@ -1,0 +1,20 @@
+{
+  "check": "gate-self-test",
+  "status": "ran",
+  "skipped_reason": null,
+  "verdict": "fail",
+  "findings": [
+    {
+      "path": "fixtures/gate-self-test/fail-self-entry-missing-fixture/corpus/fixtures/gate-self-test",
+      "line": 0,
+      "code": "registry-entry-without-fixture",
+      "severity": "fail",
+      "message": "registry entry 'gate-self-test' names a fixture root that is not present on disk"
+    }
+  ],
+  "stated_limits": [
+    "Each registered check is exercised only against the single known-bad fixture its registry entry names; the check's other fixture cases are not re-run here.",
+    "Edge-fixture hygiene is checked by directory presence only; the content of a present edge fixture is not validated."
+  ],
+  "tool_versions": {}
+}

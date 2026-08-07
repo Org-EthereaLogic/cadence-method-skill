@@ -1,0 +1,20 @@
+{
+  "check": "gate-self-test",
+  "status": "ran",
+  "skipped_reason": null,
+  "verdict": "warn",
+  "findings": [
+    {
+      "path": "fixtures/gate-self-test/warn-edge-fixture-absent/corpus/fixtures/stub-fail-check/extra-check",
+      "line": 0,
+      "code": "edge-fixture-absent",
+      "severity": "warn",
+      "message": "check 'stub-fail-check' names edge fixture 'extra-check' which is not present under its fixture root"
+    }
+  ],
+  "stated_limits": [
+    "Each registered check is exercised only against the single known-bad fixture its registry entry names; the check's other fixture cases are not re-run here.",
+    "Edge-fixture hygiene is checked by directory presence only; the content of a present edge fixture is not validated."
+  ],
+  "tool_versions": {}
+}

@@ -1,0 +1,14 @@
+{
+  "schema": "cadence.validator-registry.v1",
+  "checks": [
+    {
+      "slug": "stub-mismatched-check",
+      "script_path": "fixtures/gate-self-test/fail-wrong-finding-code/corpus/stub-mismatched-check.js",
+      "fixture_root": "fixtures/gate-self-test/fail-wrong-finding-code/corpus/fixtures/stub-mismatched-check",
+      "known_bad_case": "known-bad",
+      "verdict": "fail",
+      "finding_code": "expected-finding-code",
+      "edge_fixtures": []
+    }
+  ]
+}

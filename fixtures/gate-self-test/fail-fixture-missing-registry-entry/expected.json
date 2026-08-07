@@ -1,0 +1,20 @@
+{
+  "check": "gate-self-test",
+  "status": "ran",
+  "skipped_reason": null,
+  "verdict": "fail",
+  "findings": [
+    {
+      "path": "fixtures/gate-self-test/fail-fixture-missing-registry-entry/corpus/fixtures/stub-orphan-check",
+      "line": 0,
+      "code": "fixture-without-registry-entry",
+      "severity": "fail",
+      "message": "fixture set 'fixtures/gate-self-test/fail-fixture-missing-registry-entry/corpus/fixtures/stub-orphan-check' has no corresponding registry entry"
+    }
+  ],
+  "stated_limits": [
+    "Each registered check is exercised only against the single known-bad fixture its registry entry names; the check's other fixture cases are not re-run here.",
+    "Edge-fixture hygiene is checked by directory presence only; the content of a present edge fixture is not validated."
+  ],
+  "tool_versions": {}
+}

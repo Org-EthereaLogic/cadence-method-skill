@@ -1,0 +1,12 @@
+{
+  "check": "gate-self-test",
+  "status": "skipped",
+  "skipped_reason": "unavailable",
+  "verdict": null,
+  "findings": [],
+  "stated_limits": [
+    "Each registered check is exercised only against the single known-bad fixture its registry entry names; the check's other fixture cases are not re-run here.",
+    "Edge-fixture hygiene is checked by directory presence only; the content of a present edge fixture is not validated."
+  ],
+  "tool_versions": {}
+}
