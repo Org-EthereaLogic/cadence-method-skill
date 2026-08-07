@@ -9,6 +9,15 @@
       "verdict": "fail",
       "finding_code": "check-did-not-fire",
       "edge_fixtures": []
+    },
+    {
+      "slug": "cross-reference-integrity",
+      "script_path": "scripts/validators/cross-reference-integrity.js",
+      "fixture_root": "fixtures/cross-reference-integrity/",
+      "known_bad_case": "fail-bare-section-pointer-collides",
+      "verdict": "fail",
+      "finding_code": "bare-section-pointer-collides",
+      "edge_fixtures": []
     }
   ]
 }

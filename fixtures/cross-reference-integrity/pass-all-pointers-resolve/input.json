@@ -1,0 +1,10 @@
+{
+  "check": "cross-reference-integrity",
+  "artifact_path": "fixtures/cross-reference-integrity/pass-all-pointers-resolve/corpus/artifact.md",
+  "options": {
+    "document_set": [
+      "fixtures/cross-reference-integrity/pass-all-pointers-resolve/corpus/companion.md"
+    ],
+    "method_source": "fixtures/cross-reference-integrity/pass-all-pointers-resolve/corpus/method-source.md"
+  }
+}

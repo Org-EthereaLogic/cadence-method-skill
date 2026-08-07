@@ -1,0 +1,24 @@
+{
+  "check": "cross-reference-integrity",
+  "status": "ran",
+  "skipped_reason": null,
+  "verdict": "warn",
+  "findings": [
+    {
+      "path": "fixtures/cross-reference-integrity/warn-section-title-drifted/corpus/artifact.md",
+      "line": 5,
+      "code": "section-title-drift",
+      "severity": "warn",
+      "message": "cited title 'Definitions' for §3 differs from the target heading 'Scope' in fixtures/cross-reference-integrity/warn-section-title-drifted/corpus/companion.md"
+    }
+  ],
+  "stated_limits": [
+    "A loose VERSION pointer (e.g. \"SOME_DOC.md (VERSION: v1.2)\") is excluded from cross-reference scanning entirely; drift on it is loose-pointer-drift's finding, not this check's (AC-13.2).",
+    "A backticked bare path in prose is repository-root-relative text, not a cross-reference, and is excluded from scanning.",
+    "\"[text](path)\" markdown link forms are excluded from scanning; resolving them is link-integrity's job.",
+    "Heading lines are used only to build the section, identifier, and table/figure/appendix namespaces; they are never themselves scanned as citations.",
+    "An identifier is treated as defined only where it appears bold (\"**PREFIX-N**\") in the artifact, its document set, or its method source; a plain mention elsewhere is not treated as a definition.",
+    "Only artifact_path is scanned for outgoing cross-references; options.document_set and options.method_source are read solely to build the resolution namespace, never scanned for their own outgoing references."
+  ],
+  "tool_versions": {}
+}
