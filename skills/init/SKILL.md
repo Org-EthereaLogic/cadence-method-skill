@@ -126,7 +126,10 @@ existing governance for them (§3 step 3); every other row reaches it unconditio
   creating it is the copy rule (§6). For a `directory` row it is `mkdir -p` on the
   destination plus its zero-byte `.gitkeep`; a `directory` row has no source and nothing to
   copy.
-- **Destination exists** — write nothing and record `exists <path>`.
+- **Destination exists with the row's own kind** — a file where the row is a `file` row, a
+  directory where it is a `directory` row — write nothing and record `exists <path>`.
+- **Destination exists with the other kind** — write nothing, and record `failed <path>`
+  rather than `exists`: the row is not seeded and reporting it `exists` would say it was.
 - **Overwrite** — happens only on an explicit, per-file practitioner confirmation, recorded
   with an actor and a reason (`P6`, FR-1). `/cadence:init` never overwrites silently.
 
@@ -193,7 +196,10 @@ Copy, never re-author and never customize: `cp "<PLUGIN_ROOT>/<Source>" "<Destin
 then verify with `cmp` before recording `created`. All seven `file` rows are copied
 byte-for-byte by this one rule — no row is templated, substituted into, or rewritten during
 the run — so a copy that does not compare equal to its source is a defect, reported with
-§7's `failed` state and never as `created`. Fill-in slots inside a seeded template (an empty
+§7's `failed` state and never as `created`. **Remove the failed output before recording
+`failed`.** A partial copy left at the destination is worse than none: §4 keys on the
+destination's existence, so a later run would find the path, write nothing, and report
+`exists` for a file that never matched its source. Fill-in slots inside a seeded template (an empty
 Directives row, a `<…>` slot in `cadence/registrations.md` or `cadence/manifest.json`) are
 the project's to fill in afterwards; `/cadence:init` writes into none of them.
 
@@ -225,9 +231,12 @@ The report, in order:
 
 `skipped` means the row was not attempted — for example `<PLUGIN_ROOT>` did not confirm
 (§1), so no source was readable. A row that could not be attempted is reported `skipped`,
-never `created` and never `exists` (NFR-6). `failed` is the other half of that rule and the
-state §6 sends a bad copy to: the row *was* attempted and the copy did not compare equal to
-its source, so it is reported `failed` and never `created`.
+never `created` and never `exists` (NFR-6). `failed` is the other half of that rule: the row
+*was* attempted and did not end seeded. Two conditions reach it — §6's copy did not compare
+equal to its source, and §4 found the destination occupied by the other kind — and both are
+reported `failed`, never `created` and never `exists`. The distinction `failed` draws
+against `exists` is the same one it draws against `created`: `exists` asserts the row is
+seeded, so a row that is not seeded may not carry it.
 
 ## 8. Hard rules
 
@@ -268,6 +277,11 @@ its source, so it is reported `failed` and never `created`.
   specify, §1's `plugin.json` confirm step, and the tool-version checks the preflight
   performs on its own behalf (§7, `capability-report.md` §(d)–§(e)) — and a green run says
   nothing about whether a seeded file's *contents* satisfy any schema.
+- §4 keys on the destination's existence and its kind, not on its content, so a `file` row
+  whose copy was interrupted *between* §6's `cp` and its `cmp` — the run died rather than
+  failing — leaves a partial file that a later run reports `exists`. §6's cleanup covers
+  every failure this command can observe; it cannot cover one that stops the command. A
+  project recovering from an interrupted run deletes the partial file and re-runs.
 - Divergence detection (§5) covers the two `governance`-class rows only. A project that
   has edited its seeded `cadence/registrations.md`, `cadence/manifest.json`, or
   `cadence/gate-tiers.json` is reported `exists`, and nothing compares its content against

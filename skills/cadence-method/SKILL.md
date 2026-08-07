@@ -158,8 +158,10 @@ judgment; a script's exit code and output are the evidence a verdict is computed
 (§3's "verdicts from evidence" rule).
 
 One further bundled directory sits in this skill's tree without being a table row above:
-`scaffold/` is copy-as-seed material, and it is neither label. `/cadence:init` copies it
-into a governed project verbatim when it seeds a row, and reads two identifier lines out of
+`scaffold/` is copy-as-seed material, carrying neither the `read-as-reference` nor the
+`run-to-execute` label. `/cadence:init` copies selected files from it — the rows its own
+seed table names, not the directory wholesale — into a governed project verbatim when it
+seeds a row, and reads two identifier lines out of
 a governance template's opening blockquote for its divergence report (`skills/init/SKILL.md`
 §5 step 2) — but it is not guidance this skill is grounded in, it carries nothing to
 execute, and its content is a starting governance layer for a project rather than context
