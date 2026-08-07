@@ -1,0 +1,14 @@
+{
+  "schema": "cadence.validator-registry.v1",
+  "checks": [
+    {
+      "slug": "stub-neutered-check",
+      "script_path": "fixtures/gate-self-test/fail-check-silently-disabled/corpus/stub-neutered-check.js",
+      "fixture_root": "fixtures/gate-self-test/fail-check-silently-disabled/corpus/fixtures/stub-neutered-check",
+      "known_bad_case": "known-bad",
+      "verdict": "fail",
+      "finding_code": "stub-neutered-finding",
+      "edge_fixtures": []
+    }
+  ]
+}

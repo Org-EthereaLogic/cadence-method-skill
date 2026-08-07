@@ -1,0 +1,23 @@
+{
+  "schema": "cadence.validator-registry.v1",
+  "checks": [
+    {
+      "slug": "stub-good-check",
+      "script_path": "fixtures/gate-self-test/fail-registry-entry-missing-fixture/corpus/stub-good-check.js",
+      "fixture_root": "fixtures/gate-self-test/fail-registry-entry-missing-fixture/corpus/fixtures/stub-good-check",
+      "known_bad_case": "known-bad",
+      "verdict": "fail",
+      "finding_code": "stub-good-finding",
+      "edge_fixtures": []
+    },
+    {
+      "slug": "stub-missing-check",
+      "script_path": "fixtures/gate-self-test/fail-registry-entry-missing-fixture/corpus/stub-missing-check.js",
+      "fixture_root": "fixtures/gate-self-test/fail-registry-entry-missing-fixture/corpus/fixtures/stub-missing-check",
+      "known_bad_case": "known-bad",
+      "verdict": "fail",
+      "finding_code": "stub-missing-finding",
+      "edge_fixtures": []
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "schema": "cadence.validator-registry.v1",
+  "checks": [
+    {
+      "slug": "stub-fail-check",
+      "script_path": "fixtures/gate-self-test/warn-edge-fixture-absent/corpus/stub-fail-check.js",
+      "fixture_root": "fixtures/gate-self-test/warn-edge-fixture-absent/corpus/fixtures/stub-fail-check",
+      "known_bad_case": "known-bad",
+      "verdict": "fail",
+      "finding_code": "stub-fail-finding",
+      "edge_fixtures": ["extra-check"]
+    }
+  ]
+}

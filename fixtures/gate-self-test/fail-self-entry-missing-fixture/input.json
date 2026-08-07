@@ -1,0 +1,7 @@
+{
+  "check": "gate-self-test",
+  "options": {
+    "registry_path": "fixtures/gate-self-test/fail-self-entry-missing-fixture/corpus/registry.json",
+    "fixture_root": "fixtures/gate-self-test/fail-self-entry-missing-fixture/corpus/fixtures"
+  }
+}
