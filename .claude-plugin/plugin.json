@@ -1,4 +1,9 @@
 {
   "name": "cadence",
-  "description": "Executable runtime for the CADENCE agentic-engineering method: phase commands, advisory drafting hooks, and a deterministic promotion gate."
+  "description": "Executable runtime for the CADENCE agentic-engineering method: phase commands, advisory drafting hooks, and a deterministic promotion gate.",
+  "author": {
+    "name": "EthereaLogic",
+    "url": "https://github.com/Org-EthereaLogic"
+  },
+  "skills": ["./skills"]
 }
