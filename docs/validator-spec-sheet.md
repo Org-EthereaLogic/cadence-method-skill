@@ -614,7 +614,7 @@ The core validators need only Node and the working tree. The complete promotion 
 
 One project-visible file, `cadence/gate-tiers.json`, seeded by `/cadence:init` and rendered by `/cadence:status --gates` (AC-16.1). It lists every check against a tier drawn from the closed set `block | warn | guide` and the boundaries at which a `block` tier applies, and it records the per-boundary review-tier defaults AC-14.2 requires.
 
-**Who builds which half.** The packaged template `/cadence:init` seeds from is authored by **WP 3.1** against the values below, which are frozen here and need no validator to exist (forthcoming — WP 3.1); the scaffold enumeration that obliges init to seed it is S-6. **WP 5.4** sets the final per-check tier values in that same template and builds the configuration validator (forthcoming — WP 5.4). Splitting it this way is why WP 3.1 does not wait on WP 5.4: the seed values are a specification output, not a validator output.
+**Who builds which half.** The packaged template `/cadence:init` seeds from was authored by **WP 3.1** against the values below, which are frozen here and need no validator to exist; it is present at `skills/cadence-method/scaffold/gate-tiers.json`, carrying §6's block verbatim. The scaffold enumeration that obliges init to seed it is S-6. **WP 5.4** sets the final per-check tier values in that same template and builds the configuration validator (forthcoming — WP 5.4). Splitting it this way is why WP 3.1 does not wait on WP 5.4: the seed values are a specification output, not a validator output.
 
 ```json
 {
