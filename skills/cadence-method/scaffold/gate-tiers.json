@@ -1,0 +1,21 @@
+{
+  "schema": "cadence.gate-tiers.v1",
+  "boundaries": ["draft-to-candidate", "candidate-to-approved"],
+  "checks": {
+    "evidence-tag-grammar":          { "tier": "block", "boundaries": ["draft-to-candidate", "candidate-to-approved"] },
+    "id-namespace-resolution":       { "tier": "block", "boundaries": ["draft-to-candidate", "candidate-to-approved"] },
+    "cross-reference-integrity":     { "tier": "block", "boundaries": ["draft-to-candidate", "candidate-to-approved"] },
+    "revision-row-immutability":     { "tier": "block", "boundaries": ["draft-to-candidate", "candidate-to-approved"] },
+    "loose-pointer-drift":           { "tier": "warn",  "boundaries": [] },
+    "link-integrity":                { "tier": "block", "boundaries": ["draft-to-candidate", "candidate-to-approved"] },
+    "quotation-symmetry":            { "tier": "block", "boundaries": ["draft-to-candidate", "candidate-to-approved"] },
+    "render-fidelity":               { "tier": "block", "boundaries": ["draft-to-candidate", "candidate-to-approved"] },
+    "manifest-registry-consistency": { "tier": "block", "boundaries": ["draft-to-candidate", "candidate-to-approved"] },
+    "gate-self-test":                { "tier": "block", "boundaries": ["draft-to-candidate", "candidate-to-approved"] },
+    "tooling-shell-lint":            { "tier": "block", "boundaries": ["draft-to-candidate", "candidate-to-approved"] }
+  },
+  "review": {
+    "draft-to-candidate":    { "consensus": false, "grader": false },
+    "candidate-to-approved": { "consensus": false, "grader": false }
+  }
+}

@@ -43,10 +43,13 @@ is — infer it only from the zone.
   don't, but never block on them. Untagged claims are fine here. Never hand-edit a
   generated render — change its spec and regenerate (`references/gate-checks.md`).
 - **Draft → Candidate — the first blocking boundary.** Run the project's documented full
-  deterministic gate before promoting: evidence-tag grammar, cross-reference resolution,
-  revision-history immutability, link integrity, render fidelity, manifest/registry
-  agreement, the gate self-test, and a shell-lint of the tooling
-  (`references/gate-checks.md`). Every claim now carries exactly one evidence class from
+  deterministic gate before promoting. The method's own component checks are evidence-tag
+  grammar, cross-reference resolution, revision-history immutability, link integrity, render
+  fidelity, manifest/registry agreement, the gate self-test, and a shell-lint of the tooling
+  (`references/gate-checks.md`); what blocks in a given project is what that project's
+  `cadence/gate-tiers.json` tiers `block` at this boundary — that list plus any check this
+  runtime registers on top of it. The tier file is the authority; this card is the
+  orientation. Every claim now carries exactly one evidence class from
   the closed set or is cut — *absent is a valid outcome*
   (`references/evidence-classes.md`). Every quotation is verbatim, whole, and sourced.
   Every identifier resolves through the project's authority document to one canonical
@@ -71,13 +74,13 @@ stand-in or an unreproducible number.
 
 Each practitioner action is `/cadence:<action>`; the plugin's `cadence` name supplies the
 namespace automatically. Packaging is `skills/<action>/SKILL.md` per the resolved Q5
-decision (`docs/runtime-invocation-map.md` §5, §9(a)); component files below are
-forthcoming per their owning work package (WBS 3.0–6.0) and are **not** created by this
-package (non-goal).
+decision (`docs/runtime-invocation-map.md` §5, §9(a)); each component file below is created
+by its own owning work package (WBS 3.0–6.0) and **not** by this one (non-goal), and the
+Status column says which have landed.
 
 | Action | Invocation | Hands off to | Arc phase | Status |
 | --- | --- | --- | --- | --- |
-| `init` | `/cadence:init` | `cadence-librarian` agent (manifest stewardship) | scaffold seed | forthcoming (WP 3.1, 3.3) |
+| `init` | `/cadence:init` | `cadence-librarian` agent (manifest stewardship) | scaffold seed | present (WP 3.1); librarian hand-off (forthcoming — WP 3.3) |
 | `status` | `/cadence:status` | `cadence-librarian` agent (read-only report) | any | forthcoming (WP 3.2, 3.3) |
 | `frame` | `/cadence:frame` | `cadence-framer` agent | Frame | forthcoming (WP 4.1) |
 | `assess` | `/cadence:assess` | `cadence-assessor` agent | Assess | forthcoming (WP 4.2) |
@@ -153,6 +156,19 @@ None of the six `references/*.md` files is ever executed, and none of the three
 forthcoming script surfaces is ever treated as read-only prose — a reference informs
 judgment; a script's exit code and output are the evidence a verdict is computed from
 (§3's "verdicts from evidence" rule).
+
+One further bundled directory sits in this skill's tree without being a table row above:
+`scaffold/` is copy-as-seed material, carrying neither the `read-as-reference` nor the
+`run-to-execute` label. `/cadence:init` copies selected files from it — the rows its own
+seed table names, not the directory wholesale — into a governed project verbatim when it
+seeds a row, and reads two identifier lines out of
+a governance template's opening blockquote for its divergence report (`skills/init/SKILL.md`
+§5 step 2) — but it is not guidance this skill is grounded in, it carries nothing to
+execute, and its content is a starting governance layer for a project rather than context
+for an agent's own work. `/cadence:init` additionally copies
+`references/evidence-classes.md` and `references/id-namespaces.md` byte-for-byte into a
+governed project's `cadence/references/` (AC-1.4), alongside the two files' ordinary
+read-as-reference role in the table above.
 
 ## 6. Where the detail lives
 
