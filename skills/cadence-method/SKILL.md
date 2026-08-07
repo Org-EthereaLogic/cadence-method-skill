@@ -139,12 +139,12 @@ read the exit code / stdout of, never merely to read.
 
 | Artifact | Label | Status |
 | --- | --- | --- |
-| `references/phase-definitions.md` | read-as-reference | present (WP 1.1 draft; finalized WP 2.2) |
-| `references/zone-lifecycle.md` | read-as-reference | present (WP 1.1 draft; finalized WP 2.2) |
-| `references/evidence-classes.md` | read-as-reference | present (WP 1.1 draft; finalized WP 2.2) |
-| `references/gate-checks.md` | read-as-reference | present (WP 1.1 draft; finalized WP 2.2) |
-| `references/artifact-layout.md` | read-as-reference | present (WP 1.2 draft; finalized WP 2.2) |
-| `references/id-namespaces.md` | read-as-reference | present (WP 1.1 draft; finalized WP 2.2) |
+| `references/phase-definitions.md` | read-as-reference | present (final — WP 2.2) |
+| `references/zone-lifecycle.md` | read-as-reference | present (final — WP 2.2) |
+| `references/evidence-classes.md` | read-as-reference | present (final — WP 2.2) |
+| `references/gate-checks.md` | read-as-reference | present (final — WP 2.2) |
+| `references/artifact-layout.md` | read-as-reference | present (final — WP 2.2) |
+| `references/id-namespaces.md` | read-as-reference | present (final — WP 2.2) |
 | `scripts/validators/*` | run-to-execute | forthcoming (WP 5.1) — deterministic per-check `pass \| warn \| fail` scripts, pinned by fixtures |
 | `scripts/adapters/*` | run-to-execute | forthcoming (WP 5.1) — thin adapters/preflight for declared external gate tools |
 | The FR-14 promotion report script (`/cadence:gate`, `/cadence:promote`) | run-to-execute | forthcoming (WP 6.1) — computes the `promote \| retry \| quarantine` verdict over the evidence tree |
