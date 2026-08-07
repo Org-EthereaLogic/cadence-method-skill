@@ -2,7 +2,7 @@
 
 > **Source of truth:** The CADENCE Method, v4.7 (final) — `docs/reference/source/CADENCE_METHOD.md`, §2.
 > **Distilled from:** method §2 (the what/why axis — the six-phase arc), §§2.1–2.6.
-> **Status:** Draft reference (WBS 1.1). Final polish and table-of-contents pass are WP 2.2.
+> **Status:** Final reference (WP 2.2) — verified section-by-section against method v4.7.
 > Where this reference and the method disagree, the method governs (design decision D-4).
 
 CADENCE's what/why axis is a six-phase arc: **Frame, Assess, Innovate, Model, Implement, Track.** Testing is not a phase — it is a thread that runs through Model, Implement, and Track. Each phase below is stated as: its **Purpose**, the concrete **Methods** it uses, the **Output** artifact it produces, and the **Discipline** that matters most within it. (The arc also runs as a loop — Track feeds the next Frame, method §2.7 — which is framing, not a seventh phase, and is out of scope for this reference.)

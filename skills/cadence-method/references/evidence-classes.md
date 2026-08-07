@@ -2,7 +2,7 @@
 
 > **Source of truth:** The CADENCE Method, v4.7 (final) — `docs/reference/source/CADENCE_METHOD.md`, Appendix A.
 > **Distilled from:** method Appendix A — the closed evidence-class set that §3.3 binds to.
-> **Status:** Draft reference (WBS 1.1). Final polish and table-of-contents pass are WP 2.2.
+> **Status:** Final reference (WP 2.2) — verified section-by-section against method v4.7.
 > Where this reference and the method disagree, the method governs (design decision D-4).
 
 The block below is reproduced **byte-for-byte** from Appendix A of the method source (`docs/reference/source/CADENCE_METHOD.md`, method v4.7). It is the closed set of **eleven** evidence-tag classes, the three non-date tag parameters (`Speaker`, `Employer`, `key`), and the two governing rules. Do not paraphrase, reorder, or re-tag it here — a class is added only by amending the method's Appendix A, never by widening one silently in this reference.

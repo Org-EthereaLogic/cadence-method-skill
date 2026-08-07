@@ -2,7 +2,7 @@
 
 > **Source of truth:** The CADENCE Method, v4.7 (final) — `docs/reference/source/CADENCE_METHOD.md`, §3.4/§3.5.
 > **Distilled from:** method §3.4 (the gated build pipeline: an append-only evidence tree, a verdict computed by script, attempt discipline) and §3.5's `P5` ("capture phase inputs, outputs, timestamps, and metadata; keep artifacts append-only and audit-friendly; build so another operator can replay the result"). The method states these as principles, not a directory layout — the concrete paths below are this runtime's own specification, per NFR-5 and FR-14.
-> **Status:** Draft reference (WP 1.2). Final polish and table-of-contents pass are WP 2.2.
+> **Status:** Final reference (WP 2.2) — verified section-by-section against method v4.7.
 > Where this reference and the method disagree, the method governs (design decision D-4).
 
 This file specifies where phase-agent and promotion-gate runs write their evidence, how attempt directories are named, and how a verdict is replayed from what is written — the layout NFR-5 (auditability) and FR-14 (verdict-by-script) require. It is specification only: the report script and the validators that write into this tree are WBS 5.0/6.0 deliverables, not this file.

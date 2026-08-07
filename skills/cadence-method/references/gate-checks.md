@@ -2,7 +2,7 @@
 
 > **Source of truth:** The CADENCE Method, v4.7 (final) — `docs/reference/source/CADENCE_METHOD.md`.
 > **Distilled from:** method §6.1 (the Candidate promotion gate's check list), §3.5 (the block / warn / guide enforcement tiers), and the tier refinements stated in §5 and §6.2.
-> **Status:** Draft reference (WBS 1.1). Final polish and table-of-contents pass are WP 2.2.
+> **Status:** Final reference (WP 2.2) — verified section-by-section against method v4.7.
 > Where this reference and the method disagree, the method governs (design decision D-4).
 
 This reference maps the **Candidate-gate** checks to their enforcement tiers. The Candidate gate is the full deterministic gate that runs at the **Draft → Candidate** promotion boundary; the method's zone table marks it *"Blocks? Yes, to promote"* (§6.1). Tiers here are synthesized **only** from what the method states — §3.5 (the tier definitions), §6.1 (the check list), §5 (the cross-reference downgrade), and §6.2 (the decouplings). No runtime-specific check is added; where the method is silent on a per-check tier, that is noted rather than invented (D-4: faithful extraction, do not invent rules not in the method).
@@ -10,6 +10,8 @@ This reference maps the **Candidate-gate** checks to their enforcement tiers. Th
 ## The enforcement tiers (§3.5)
 
 The Directives are tagged by enforcement strength: **block** (a gate refuses), **warn** (recorded, never blocks), or **guide** (advisory).
+
+A **block** tier is valid **only at the two promotion boundaries** — Draft → Candidate (this Candidate gate) and Candidate → Approved (its isolated clean-room re-run) — and never while an artifact is being drafted (§6: "hard enforcement may block only at a promotion between zones ... may block Draft → Candidate, and its isolated clean-room re-run may block Candidate → Approved"; §6.1: "those two promotion boundaries are the only points at which a zone gate can block"). This is consistent with `zone-lifecycle.md`, which names the same two boundaries.
 
 ## The Candidate-gate check list, mapped to tiers
 
