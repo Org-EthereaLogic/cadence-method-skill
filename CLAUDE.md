@@ -27,7 +27,7 @@ Safety and correctness → evidence traceability → security → simplicity and
 | `docs/design/` | The governed document set: authority document, user-stories companion, standards review. Governed-document conventions apply. | present |
 | `docs/reference/source/` | Read-only vendored snapshot of method v4.7. Never edited here. An upstream advance lands as a dedicated re-vendor commit updating both the recorded version and the pinned hashes in that directory's README. | present |
 | `skills/cadence-method/references/` | Runtime context payload loaded into an agent's context and budgeted by NFR-1 — not documentation, and not subject to documentation conventions. Polishing these files inflates the context budget NFR-1 exists to protect. | present |
-| `skills/cadence-method/SKILL.md` | The orchestrator operating contract, under 500 lines. | forthcoming — WP 2.1 |
+| `skills/cadence-method/SKILL.md` | The orchestrator operating contract, under 500 lines. | present |
 | `skills/cadence-method/scaffold/` | Seed templates `/cadence:init` copies into a governed project — Constitution, Directives, manifest, and the gate-tier configuration (S-6). Written by two packages: WP 3.1 authors them, WP 5.4 sets the gate-tier file's final tier values. | forthcoming — WP 3.1 |
 | `.claude-plugin/plugin.json` | Plugin manifest. Establishes the `/cadence:*` namespace. Only `plugin.json` belongs in this directory. | present |
 | `scripts/guardrails-check.sh` | This repository's own hygiene gate. Reads only; never writes, stages, or commits. | present |
