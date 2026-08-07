@@ -2,7 +2,7 @@
 
 > **Source of truth:** The CADENCE Method, v4.7 (final) — `docs/reference/source/CADENCE_METHOD.md`, §3.2.
 > **Distilled from:** method §3.2 (the authority document and the SDLC document set) — the default identifier prefix table and the identifier-stability rule.
-> **Status:** Draft reference (WBS 1.1). Final polish and table-of-contents pass are WP 2.2.
+> **Status:** Final reference (WP 2.2) — verified section-by-section against method v4.7.
 > Where this reference and the method disagree, the method governs (design decision D-4).
 
 Every identifier resolves through the authority document to exactly one canonical definition (method §3.2). The prefixes below are the method's **default** set; a project may extend or use a different recorded namespace, but only by defining it once in its authority document, and it must never give one token two meanings.

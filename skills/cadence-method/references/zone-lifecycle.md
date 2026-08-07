@@ -2,7 +2,7 @@
 
 > **Source of truth:** The CADENCE Method, v4.7 (final) — `docs/reference/source/CADENCE_METHOD.md`, §6 (with §6.1).
 > **Distilled from:** method §6 (advisory by default, gate at promotion) and §6.1 (three zones instead of one gate).
-> **Status:** Draft reference (WBS 1.1). Final polish and table-of-contents pass are WP 2.2.
+> **Status:** Final reference (WP 2.2) — verified section-by-section against method v4.7.
 > Where this reference and the method disagree, the method governs (design decision D-4).
 
 The guardrail architecture rebuilds the how-axis on two principles (method §6):
