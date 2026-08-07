@@ -37,13 +37,15 @@ The capability report names the four external-tool roles as unresolved until WP 
 
 ## Install
 
-Nothing is installable yet. When the plugin surface exists, it loads from a clone:
+There is no published release. The plugin loads from a clone:
 
 ```bash
 claude --plugin-dir .
 ```
 
 Then `/reload-plugins` in-session. Marketplace distribution is out of scope for release 1 (exclusion X-6); install locally from a clone.
+
+One of the ten commands is built, so a local load gives you `/cadence:init` and nothing else. The promotion gate, the phase commands, and the validators do not exist yet — see Status above for what has landed.
 
 ## Safe and unsafe use
 
