@@ -12,12 +12,18 @@ The governing idea is that hard controls engage at promotion, not while you draf
 
 ## Status
 
-**Release:** pre-release. **M1 taken** — the design freeze was signed 2026-08-06 UTC ([docs/design-freeze.md](docs/design-freeze.md)) and WBS 1.0 is complete. WBS 2.0 (Skill Core) is complete; WBS 3.0–7.0 are in progress toward M3 (release 1). Nothing is installable yet.
+**Release:** pre-release. **M1 taken** — the design freeze was signed 2026-08-06 UTC ([docs/design-freeze.md](docs/design-freeze.md)) and WBS 1.0 is complete. WBS 2.0 (Skill Core) is complete and WBS 3.0 is underway — WP 3.1 landed the first practitioner command; WBS 3.0–7.0 continue toward M3 (release 1). No installable release is published, and the promotion gate does not exist yet, so the method's blocking controls are not yet enforceable.
 **Governing method:** `CADENCE_METHOD.md` v4.7, vendored read-only under `docs/reference/source/`.
 **Authority document:** [docs/design/CADENCE_AUTOMATION_PROJECT_PLAN_WBS.md](docs/design/CADENCE_AUTOMATION_PROJECT_PLAN_WBS.md) v1.17, with its declared companion [docs/design/CADENCE_AUTOMATION_USER_STORIES.md](docs/design/CADENCE_AUTOMATION_USER_STORIES.md) v1.11.
 **Runtime:** Claude Code. Codex parity is release 2 (WBS 8.0).
 
-The planned practitioner surface is ten `/cadence:*` commands — `init`, `status`, the six phase commands, `gate`, and `promote` — defined canonically as S-2 in the authority document. None are built yet. A command table appears here when the first command exists, with rows only for commands that exist.
+The planned practitioner surface is ten `/cadence:*` commands — `init`, `status`, the six phase commands, `gate`, and `promote` — defined canonically as S-2 in the authority document. One of the ten exists; this table carries a row only for a command that does.
+
+| Command | What it does | Built by |
+| --- | --- | --- |
+| `/cadence:init` | Seeds the project scaffold (S-6): Constitution, Directives template, the evidence-class and ID-namespace references, a manifest template, the `cadence/draft\|candidate\|approved` zone directories, an `artifacts/` evidence root, `cadence/gate-tiers.json`, and the agent/hook/command registrations. Seeds only what is absent, so a re-run writes nothing; an existing Constitution or Directives is reported as diverged and never replaced. Closes with a runtime capability report. | WP 3.1 |
+
+The capability report names the four external-tool roles as unresolved until WP 5.1 lands `scripts/adapters/` — reported missing and skipped, never as passing (NFR-6).
 
 ## What this packages
 
@@ -31,13 +37,15 @@ The planned practitioner surface is ten `/cadence:*` commands — `init`, `statu
 
 ## Install
 
-Nothing is installable yet. When the plugin surface exists, it loads from a clone:
+There is no published release. The plugin loads from a clone:
 
 ```bash
 claude --plugin-dir .
 ```
 
 Then `/reload-plugins` in-session. Marketplace distribution is out of scope for release 1 (exclusion X-6); install locally from a clone.
+
+One of the ten commands is built, so a local load gives you `/cadence:init` and nothing else. The promotion gate, the phase commands, and the validators do not exist yet — see Status above for what has landed.
 
 ## Safe and unsafe use
 
