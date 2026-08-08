@@ -1,0 +1,5 @@
+{
+  "identifiers": {
+    "FR-1": { "definition": "The system resolves every identifier to exactly one canonical definition.", "document": "fixtures/id-namespace-resolution/fail-reused-and-renumbered-overlap/corpus/method-source.md" }
+  }
+}

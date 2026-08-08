@@ -1,0 +1,6 @@
+{
+  "identifiers": {
+    "FR-5": { "definition": "The later-landing work package's requirement, defined first in this text.", "document": "fixtures/id-namespace-resolution/pass-out-of-sequence-not-renumbered/corpus/method-source.md" },
+    "FR-2": { "definition": "The earlier-numbered work package's requirement, defined second in this text.", "document": "fixtures/id-namespace-resolution/pass-out-of-sequence-not-renumbered/corpus/method-source.md" }
+  }
+}

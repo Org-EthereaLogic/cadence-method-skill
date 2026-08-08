@@ -1,0 +1,12 @@
+{
+  "check": "id-namespace-resolution",
+  "artifact_path": "fixtures/id-namespace-resolution/pass-heading-3-21-is-not-section-3-2/corpus/artifact.md",
+  "authority_document": "fixtures/id-namespace-resolution/pass-heading-3-21-is-not-section-3-2/corpus/method-source.md",
+  "references": {
+    "id_namespaces": "fixtures/id-namespace-resolution/pass-heading-3-21-is-not-section-3-2/corpus/id-namespaces.md"
+  },
+  "options": {
+    "identifier_baseline": null,
+    "companion_documents": []
+  }
+}

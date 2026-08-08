@@ -1,0 +1,12 @@
+{
+  "check": "id-namespace-resolution",
+  "artifact_path": "fixtures/id-namespace-resolution/fail-reused-and-renumbered-overlap/corpus/artifact.md",
+  "authority_document": "fixtures/id-namespace-resolution/fail-reused-and-renumbered-overlap/corpus/method-source.md",
+  "references": {
+    "id_namespaces": "fixtures/id-namespace-resolution/fail-reused-and-renumbered-overlap/corpus/id-namespaces.md"
+  },
+  "options": {
+    "identifier_baseline": "fixtures/id-namespace-resolution/fail-reused-and-renumbered-overlap/corpus/baseline.json",
+    "companion_documents": []
+  }
+}

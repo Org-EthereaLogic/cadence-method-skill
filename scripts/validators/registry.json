@@ -27,6 +27,39 @@
       "verdict": "fail",
       "finding_code": "dangling-anchor",
       "edge_fixtures": []
+    },
+    {
+      "slug": "id-namespace-resolution",
+      "script_path": "scripts/validators/id-namespace-resolution.js",
+      "fixture_root": "fixtures/id-namespace-resolution/",
+      "known_bad_case": "fail-two-definitions-one-token",
+      "verdict": "fail",
+      "finding_code": "ambiguous-identifier-definition",
+      "edge_fixtures": [
+        "skip-no-recorded-baseline",
+        "pass-baseline-records-no-identifiers",
+        "pass-out-of-sequence-not-renumbered",
+        "pass-prefix-table-bounded-to-reserved-section",
+        "pass-decoy-tables-outside-bound-section",
+        "pass-number-beats-title-in-section-bind",
+        "pass-headerless-prefix-row-still-declares",
+        "pass-heading-3-21-is-not-section-3-2",
+        "pass-heading-3-2-1-is-not-section-3-2",
+        "fail-remeaning-not-hidden-by-unrelated-3-2-heading",
+        "fail-remeaning-under-section-word-heading",
+        "fail-remeaning-under-heading-after-thematic-break",
+        "fail-backtick-wrapped-row-still-declares",
+        "fail-stray-backtick-does-not-mask-identifier-use",
+        "fail-stray-backtick-in-cell-does-not-drop-prefix",
+        "fail-undeclared-companion-not-admitted",
+        "fail-reused-and-renumbered-overlap",
+        "skipped-input-path-escapes-root",
+        "skipped-baseline-path-escapes-root",
+        "skipped-malformed-baseline-identifiers-string",
+        "skipped-malformed-baseline-identifiers-array",
+        "skipped-malformed-baseline-entry-not-an-object",
+        "skipped-reference-has-no-reserved-section"
+      ]
     }
   ]
 }
