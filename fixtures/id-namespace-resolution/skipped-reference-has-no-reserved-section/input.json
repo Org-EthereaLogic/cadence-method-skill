@@ -1,0 +1,12 @@
+{
+  "check": "id-namespace-resolution",
+  "artifact_path": "fixtures/id-namespace-resolution/skipped-reference-has-no-reserved-section/corpus/artifact.md",
+  "authority_document": "fixtures/id-namespace-resolution/skipped-reference-has-no-reserved-section/corpus/method-source.md",
+  "references": {
+    "id_namespaces": "fixtures/id-namespace-resolution/skipped-reference-has-no-reserved-section/corpus/id-namespaces.md"
+  },
+  "options": {
+    "identifier_baseline": null,
+    "companion_documents": []
+  }
+}

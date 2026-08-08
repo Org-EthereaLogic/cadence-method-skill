@@ -1,0 +1,12 @@
+{
+  "check": "id-namespace-resolution",
+  "artifact_path": "fixtures/id-namespace-resolution/skipped-baseline-path-escapes-root/corpus/artifact.md",
+  "authority_document": "fixtures/id-namespace-resolution/skipped-baseline-path-escapes-root/corpus/method-source.md",
+  "references": {
+    "id_namespaces": "fixtures/id-namespace-resolution/skipped-baseline-path-escapes-root/corpus/id-namespaces.md"
+  },
+  "options": {
+    "identifier_baseline": "fixtures/id-namespace-resolution/skipped-baseline-path-escapes-root/corpus/../../../../../outside-root-baseline.json",
+    "companion_documents": []
+  }
+}

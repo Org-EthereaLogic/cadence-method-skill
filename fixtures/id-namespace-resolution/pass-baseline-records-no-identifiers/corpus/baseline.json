@@ -1,5 +1,4 @@
 {
   "schema": "cadence.identifier-baseline.v1",
-  "recorded_at": "2026-08-07T14:22:05Z",
-  "note": "A first baseline file, written before any identifier was recorded: it carries no identifiers object."
+  "note": "A first baseline file, written before any identifier was recorded: it carries no identifiers object. This check reads only the identifiers object; a fixture carries no timestamp (spec sheet section 7)."
 }

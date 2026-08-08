@@ -1,0 +1,7 @@
+{
+  "schema": "cadence.identifier-baseline.v1",
+  "identifiers": [
+    { "id": "FR-1", "definition": "The system resolves every identifier to exactly one canonical definition." },
+    { "id": "SC-1", "definition": "The gate rejects any unresolvable identifier at the Draft to Candidate boundary." }
+  ]
+}
