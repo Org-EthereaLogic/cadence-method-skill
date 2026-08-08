@@ -1,0 +1,7 @@
+{
+  "identifiers": {
+    "FR-1": { "definition": "The system resolves every identifier to exactly one canonical definition.", "document": "fixtures/id-namespace-resolution/pass-resolves-through-authority/corpus/method-source.md" },
+    "SC-1": { "definition": "The gate rejects any unresolvable identifier at the Draft to Candidate boundary.", "document": "fixtures/id-namespace-resolution/pass-resolves-through-authority/corpus/method-source.md" },
+    "AC-1": { "definition": "Every functional requirement above resolves cleanly through this companion.", "document": "fixtures/id-namespace-resolution/pass-resolves-through-authority/corpus/companion.md" }
+  }
+}

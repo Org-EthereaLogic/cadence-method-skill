@@ -1,0 +1,17 @@
+{
+  "check": "id-namespace-resolution",
+  "status": "ran",
+  "skipped_reason": null,
+  "verdict": "pass",
+  "findings": [],
+  "stated_limits": [
+    "Only a token whose prefix the reserved section 3.2 table in references.id_namespaces actually declares is treated as an identifier of this namespace; a prose token with an undeclared prefix (a standards reference such as an RFC or ISO number) is neither resolved nor reported.",
+    "An identifier is treated as defined only where it appears bold (\"**PREFIX-N**\" or \"**QN**\") in the authority document or in a companion the authority document's own text names by basename; a plain mention elsewhere is not treated as a definition.",
+    "A companion document is admitted to the resolution namespace only when the authority document's own effective text names that companion's basename as a whole filename; a longer name that merely ends with it, and a mention surviving only inside a code block or code span, admit nothing, and an undeclared companion is never consulted (FR-10).",
+    "P1 through P7 are Constitution principles, not PREFIX-N identifiers, and never match the identifier token grammar; a token inside a fenced code block or an inline code span is masked before scanning and is never read as an identifier.",
+    "A reserved section 3.2 prefix is compared against a redeclaration of that same prefix inside the authority document only when the artifact actually cites an identifier of that prefix; a prefix the authority document never redeclares is not flagged.",
+    "Only artifact_path is scanned for identifier use; the authority document, its declared companions, and the id_namespaces reference are read solely to build the resolution namespace and are never themselves scanned for outgoing identifier use.",
+    "The stability half ran against the supplied options.identifier_baseline, comparing the canonical definition text of every identifier that baseline records (2 entries) against its current binding for reuse and renumbering."
+  ],
+  "tool_versions": {}
+}

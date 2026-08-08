@@ -1,0 +1,6 @@
+{
+  "identifiers": {
+    "FR-1": { "definition": "The system resolves every identifier to exactly one canonical definition.", "document": "fixtures/id-namespace-resolution/fail-renumbered-identifier/corpus/method-source.md" },
+    "FR-2": { "definition": "The gate reports every check that could not run as skipped, never as passed.", "document": "fixtures/id-namespace-resolution/fail-renumbered-identifier/corpus/method-source.md" }
+  }
+}

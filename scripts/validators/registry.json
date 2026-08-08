@@ -27,6 +27,20 @@
       "verdict": "fail",
       "finding_code": "dangling-anchor",
       "edge_fixtures": []
+    },
+    {
+      "slug": "id-namespace-resolution",
+      "script_path": "scripts/validators/id-namespace-resolution.js",
+      "fixture_root": "fixtures/id-namespace-resolution/",
+      "known_bad_case": "fail-two-definitions-one-token",
+      "verdict": "fail",
+      "finding_code": "ambiguous-identifier-definition",
+      "edge_fixtures": [
+        "skip-no-recorded-baseline",
+        "pass-baseline-records-no-identifiers",
+        "pass-out-of-sequence-not-renumbered",
+        "fail-undeclared-companion-not-admitted"
+      ]
     }
   ]
 }

@@ -1,0 +1,12 @@
+{
+  "check": "id-namespace-resolution",
+  "artifact_path": "fixtures/id-namespace-resolution/pass-out-of-sequence-not-renumbered/corpus/artifact.md",
+  "authority_document": "fixtures/id-namespace-resolution/pass-out-of-sequence-not-renumbered/corpus/method-source.md",
+  "references": {
+    "id_namespaces": "fixtures/id-namespace-resolution/pass-out-of-sequence-not-renumbered/corpus/id-namespaces.md"
+  },
+  "options": {
+    "identifier_baseline": "fixtures/id-namespace-resolution/pass-out-of-sequence-not-renumbered/corpus/baseline.json",
+    "companion_documents": []
+  }
+}
