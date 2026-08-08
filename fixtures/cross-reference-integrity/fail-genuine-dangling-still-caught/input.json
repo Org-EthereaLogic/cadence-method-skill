@@ -1,0 +1,10 @@
+{
+  "check": "cross-reference-integrity",
+  "artifact_path": "fixtures/cross-reference-integrity/fail-genuine-dangling-still-caught/corpus/artifact.md",
+  "options": {
+    "document_set": [
+      "fixtures/cross-reference-integrity/fail-genuine-dangling-still-caught/corpus/companion.md"
+    ],
+    "method_source": "fixtures/cross-reference-integrity/fail-genuine-dangling-still-caught/corpus/method-source.md"
+  }
+}

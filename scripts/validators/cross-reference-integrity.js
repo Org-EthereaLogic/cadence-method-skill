@@ -175,7 +175,12 @@ function parseHeadings(text) {
       continue;
     }
 
-    const tfMatch = /^(Table|Figure|Appendix)\s+([A-Za-z0-9]+)\b/.exec(rest);
+    // The label class here must stay identical to TABFIG_RE's below. A looser
+    // class on either side desynchronizes the two: "[A-Za-z0-9]+" stops at a
+    // dot, so heading "## Table 3.2" would key as "table:3" while citation
+    // "Table 3.2" keys as "table:3.2", and a genuine reference to a heading
+    // that exists would be reported dangling.
+    const tfMatch = /^(Table|Figure|Appendix)\s+(\d+(?:\.\d+)*|[A-Z])\b/.exec(rest);
     if (tfMatch) {
       const key = (tfMatch[1] + ':' + tfMatch[2]).toLowerCase();
       if (!tabfig.has(key)) {
@@ -310,7 +315,13 @@ function scanCitations(maskedText, ctx) {
     }
   }
 
-  const BARE_RE = /(?:§|\b(?:see|section)\s+§?)(\d+(?:\.\d+)*)(?:\s*\(([^)\n]+)\))?/gi;
+  // A bare integer after "see"/"section" is ordinary English far more often
+  // than it is a section pointer ("we see 6 witnesses", "the section 12
+  // employees"), so an unmarked integer is not treated as a citation at all.
+  // A pointer is recognized only when it carries a § marker ("§4", "see §4")
+  // or a dotted number, which prose does not produce ("see 6.2").
+  const BARE_RE =
+    /(?:§|\b(?:see|section)\s+§|\b(?:see|section)\s+(?=\d+\.\d))(\d+(?:\.\d+)*)(?:\s*\(([^)\n]+)\))?/gi;
   while ((m = BARE_RE.exec(maskedText))) {
     candidateCount++;
     const start = m.index;
@@ -350,8 +361,19 @@ function scanCitations(maskedText, ctx) {
 
   const IDENT_RE = /\b([A-Z]{1,4}-\d+(?:\.\d+)*)\b/g;
   while ((m = IDENT_RE.exec(maskedText))) {
-    candidateCount++;
     const token = m[1];
+    // "PREFIX-N" is also the shape of ordinary technical prose: UTF-8,
+    // SHA-256, GPT-4. Only a token whose prefix family is bold-defined
+    // somewhere in the corpus is treated as a cross-cited identifier at all;
+    // anything else is prose and is neither counted as a candidate nor
+    // flagged. A token whose prefix IS in use but whose specific number is
+    // undefined (AC-9.9 where **AC-9.5** exists) is still a genuine dangling
+    // reference and still fails. Deciding which prefixes are *reserved* is a
+    // different question, owned by the identifier-namespace check; this check
+    // only ever asks whether a definition exists.
+    const dash = token.indexOf('-');
+    if (dash <= 0 || !ctx.definedPrefixes.has(token.slice(0, dash))) continue;
+    candidateCount++;
     const line = lineAt(maskedText, m.index);
     if (!ctx.identifierDefs.has(token)) {
       findings.push(mkFinding(
@@ -361,7 +383,11 @@ function scanCitations(maskedText, ctx) {
     }
   }
 
-  const TABFIG_RE = /\b(Table|Figure|Appendix)\s+([A-Za-z0-9]+)\b/g;
+  // Requires a numeric/dotted label or a single uppercase letter, so ordinary
+  // prose ("Figure out the Table of contents before Appendix review") is not
+  // read as three citations. Must stay identical to the heading scanner's
+  // label class in parseHeadings.
+  const TABFIG_RE = /\b(Table|Figure|Appendix)\s+(\d+(?:\.\d+)*|[A-Z])\b/g;
   while ((m = TABFIG_RE.exec(maskedText))) {
     candidateCount++;
     const kind = m[1];
@@ -461,6 +487,14 @@ function execute(input) {
   for (const d of documentSetDocs) collectIdentifierDefs(d.raw, identifierDefs);
   if (methodRaw) collectIdentifierDefs(methodRaw, identifierDefs);
 
+  // The prefix families actually in use in this corpus. A "PREFIX-N" token
+  // whose prefix is absent here is prose, not a citation (see IDENT_RE).
+  const definedPrefixes = new Set();
+  for (const tok of identifierDefs) {
+    const dash = tok.indexOf('-');
+    if (dash > 0) definedPrefixes.add(tok.slice(0, dash));
+  }
+
   const tabfigDefs = new Set();
   for (const [k] of artifactParsed.tabfig) tabfigDefs.add(k);
   for (const d of documentSetDocs) {
@@ -477,6 +511,7 @@ function execute(input) {
     methodSections: methodSections,
     methodLabel: methodRelPath || 'the method source',
     identifierDefs: identifierDefs,
+    definedPrefixes: definedPrefixes,
     tabfigDefs: tabfigDefs
   };
 
