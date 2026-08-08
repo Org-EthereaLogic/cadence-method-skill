@@ -2,7 +2,7 @@
 
 > **Owner:** WP 1.3 (WBS 1.0), authorized by `docs/design/CADENCE_AUTOMATION_PROJECT_PLAN_WBS.md`.
 > **Derived from:** S-5, FR-8, FR-9, FR-10, FR-11, FR-12, FR-14, FR-17, FR-18, NFR-1, NFR-3, NFR-6, D-2, D-4 and WBS 5.1 in the authority document; AC-9.2, AC-9.4, AC-11.3, AC-12.1 through AC-12.4, AC-13.1, AC-13.2, AC-15.1 through AC-15.3, AC-16.1, AC-16.2 and AC-1.3 in `docs/design/CADENCE_AUTOMATION_USER_STORIES.md`; method §3.4, §5, §6.1, §6.2, §6.3, §9 and Appendix A in `docs/reference/source/CADENCE_METHOD.md`, which is read-only (D-4) and is cited here, never edited.
-> **What this is not.** Not a governed document: it carries no metadata table and no revision record, and scope, requirements, and identifiers resolve in the authority document, not here. Not a validator: this is specification only. Building the validators and adapters is WP 5.1 (forthcoming — WP 5.1) and building the fixture packs and the parity runner is WP 5.2 (forthcoming — WP 5.2); both are explicit non-goals of this sheet.
+> **What this is not.** Not a governed document: it carries no metadata table and no revision record, and scope, requirements, and identifiers resolve in the authority document, not here. Not a validator: this is specification only. Building the validators and adapters is WP 5.1 (in progress — four of the eleven checks and the check registry have landed; the adapters and the remaining seven checks are forthcoming) and building the fixture packs and the parity runner is WP 5.2 (forthcoming — WP 5.2); both are explicit non-goals of this sheet.
 > **Identifier note (FR-10).** This sheet introduces no identifier. Every check is named exactly as WBS 5.1 names it. The kebab-case slugs below are **filenames and JSON field values**, not identifiers in an `FR-`-style namespace; each resolves to the WBS 5.1 name in the same row of the completeness matrix.
 
 ## 1. Scope and status
@@ -14,7 +14,9 @@ Two rules govern everything below and are not restated in each section.
 - **No validator calls a model.** Every gate check is a standalone deterministic script (FR-8, AC-12.1, X-3). Every verdict is computed by the script from its input; no model output changes a verdict, and no narrative overrides one (method pattern 5).
 - **A check that could not run is `skipped`, never `passed`** (NFR-6, method §9). A claim this sheet cannot support is marked `unverified`, never `passed`; see §8.
 
-Status: specification, unbuilt. Nothing in this sheet has been executed, so every statement about a validator's runtime behavior is `unverified` until WP 5.1 builds it and WP 5.2 pins it byte-for-byte.
+Status: specification, partially built. Four of the eleven checks have landed under `scripts/validators/`, each with a frozen fixture pack: `gate-self-test` (#21), `cross-reference-integrity` (#19), `link-integrity` (#23), and `id-namespace-resolution` (#22). For those four, a statement about runtime behavior is pinned by fixtures rather than `unverified`, and a disagreement between this sheet and a landed validator is a defect in one of them to be resolved — never a silent divergence. For the remaining seven checks, and for the adapter and tier-configuration designs in the sections below, the original status holds unchanged: nothing has been executed, so every statement about runtime behavior is `unverified` until WP 5.1 builds it and WP 5.2 pins it byte-for-byte.
+
+A landed pack routinely carries more cases than its per-check fixture table below names. That is expected, not drift: those tables name the **mandatory** cases (§7) — a `pass`, a `warn`, a `fail`, plus the edge cases §4 names — and never a ceiling. Completeness is judged against the mandatory set, so a pack may add cases as defects are found without contradicting this sheet.
 
 ## 2. The common validator contract
 
