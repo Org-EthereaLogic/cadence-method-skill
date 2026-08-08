@@ -12,7 +12,7 @@ The governing idea is that hard controls engage at promotion, not while you draf
 
 ## Status
 
-**Release:** pre-release. **M1 taken** — the design freeze was signed 2026-08-06 UTC ([docs/design-freeze.md](docs/design-freeze.md)) and WBS 1.0 is complete. WBS 2.0 (Skill Core) is complete and WBS 3.0 is underway — WP 3.1 landed the first practitioner command; WBS 3.0–7.0 continue toward M3 (release 1). No installable release is published, and the promotion gate does not exist yet, so the method's blocking controls are not yet enforceable.
+**Release:** pre-release. **M1 taken** — the design freeze was signed 2026-08-06 UTC ([docs/design-freeze.md](docs/design-freeze.md)) and WBS 1.0 is complete. WBS 2.0 (Skill Core) is complete; WBS 3.0 is underway (WP 3.1 landed the first practitioner command) and WBS 5.0 is landing in parallel — four of the eleven WP 5.1 validators are built: `gate-self-test` (#21), `cross-reference-integrity` (#19), `link-integrity` (#23), and `id-namespace-resolution` (#22). WBS 3.0–7.0 continue toward M3 (release 1). No installable release is published, and the promotion gate does not exist yet, so the method's blocking controls are not yet enforceable — a landed validator is a script no gate tier invokes.
 **Governing method:** `CADENCE_METHOD.md` v4.7, vendored read-only under `docs/reference/source/`.
 **Authority document:** [docs/design/CADENCE_AUTOMATION_PROJECT_PLAN_WBS.md](docs/design/CADENCE_AUTOMATION_PROJECT_PLAN_WBS.md) v1.17, with its declared companion [docs/design/CADENCE_AUTOMATION_USER_STORIES.md](docs/design/CADENCE_AUTOMATION_USER_STORIES.md) v1.11.
 **Runtime:** Claude Code. Codex parity is release 2 (WBS 8.0).
@@ -45,7 +45,7 @@ claude --plugin-dir .
 
 Then `/reload-plugins` in-session. Marketplace distribution is out of scope for release 1 (exclusion X-6); install locally from a clone.
 
-One of the ten commands is built, so a local load gives you `/cadence:init` and nothing else. The promotion gate, the phase commands, and the validators do not exist yet — see Status above for what has landed.
+One of the ten commands is built, so a local load gives you `/cadence:init` and nothing else. The promotion gate and the phase commands do not exist yet. Four of the eleven WP 5.1 validators have landed as scripts under `scripts/validators/`, but no command surface invokes them and no gate tier is configured, so they block nothing — see Status above for what has landed.
 
 ## Safe and unsafe use
 
