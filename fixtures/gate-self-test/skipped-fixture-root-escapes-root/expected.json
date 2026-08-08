@@ -1,0 +1,14 @@
+{
+  "check": "gate-self-test",
+  "status": "skipped",
+  "skipped_reason": "unavailable",
+  "verdict": null,
+  "findings": [],
+  "stated_limits": [
+    "Each registered check is exercised only against the single known-bad fixture its registry entry names; the check's other fixture cases are not re-run here.",
+    "Edge-fixture hygiene is checked by directory presence only; the content of a present edge fixture is not validated.",
+    "Every path in the input envelope, and every path drawn from the registry it names, is resolved beneath the repository root and refused unread when it escapes it, so an absolute path or a \"../\" traversal in options.registry_path or options.fixture_root degrades the whole run closed to skipped: unavailable, and one in a registry entry's fixture_root or script_path degrades that entry closed to its existing fail-severity finding without ever running the entry's script; that test is lexical, so a symbolic link that lives inside the checkout and points outside it is not detected.",
+    "No further file was read or executed for this run: the path supplied in options.fixture_root resolves outside the repository root and was refused unread/unexecuted by the root constraint. That is a containment decision, not a missing or unreadable file, and this sentence is what distinguishes the two -- skipped_reason is \"unavailable\" for a whole-run refusal because the reason set carries no dedicated value for a refusal. The refused path is untrusted input and is deliberately not echoed here."
+  ],
+  "tool_versions": {}
+}

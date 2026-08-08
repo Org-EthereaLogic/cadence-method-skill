@@ -1,0 +1,14 @@
+{
+  "schema": "cadence.validator-registry.v1",
+  "checks": [
+    {
+      "slug": "stub-sibling-check",
+      "script_path": "fixtures/gate-self-test/skipped-fixture-root-escapes-root/corpus/stub-sibling-check.js",
+      "fixture_root": "fixtures/gate-self-test/skipped-fixture-root-escapes-root/corpus/fixtures/stub-sibling-check",
+      "known_bad_case": "known-bad",
+      "verdict": "fail",
+      "finding_code": "stub-sibling-finding",
+      "edge_fixtures": []
+    }
+  ]
+}

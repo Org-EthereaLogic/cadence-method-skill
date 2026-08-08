@@ -1,0 +1,7 @@
+{
+  "check": "gate-self-test",
+  "options": {
+    "registry_path": "fixtures/gate-self-test/skipped-fixture-root-escapes-root/corpus/registry.json",
+    "fixture_root": "../outside-root-fixtures"
+  }
+}

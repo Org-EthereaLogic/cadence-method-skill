@@ -1,0 +1,5 @@
+{
+  "check": "cross-reference-integrity",
+  "artifact_path": "../outside-root-artifact.md",
+  "options": {}
+}

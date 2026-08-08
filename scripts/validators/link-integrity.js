@@ -13,8 +13,16 @@
 //   artifact_path and project_root are resolved relative to the current
 //   working directory (the repository root), never relative to this script
 //   or to the input file itself, exactly as every other check's
-//   artifact_path is (section 2). A missing or unreadable artifact_path
-//   produces "skipped: unavailable" (degrade closed).
+//   artifact_path is (section 2), and both artifact_path and every relative
+//   link target resolved against project_root are CONSTRAINED to the
+//   repository root: a resolved path that escapes the root (an absolute
+//   path, or a "../" traversal) is refused unread and degrades the run
+//   closed to "skipped: unavailable", carrying its OWN stated_limits
+//   sentence naming the field that was refused -- a refusal and an
+//   unreadable file are different facts, and an envelope that cannot tell
+//   them apart cannot be used to prove the root constraint fired. A missing
+//   or unreadable artifact_path produces "skipped: unavailable" (degrade
+//   closed).
 //
 //   Only "[text](path)" markdown link forms are links (section 4). A
 //   backticked bare path in prose is repository-root-relative text and is
@@ -88,7 +96,15 @@ const BASE_STATED_LIMITS = [
     'never scanned (CONTRIBUTING.md convention).',
   'A "[text](path)" form inside a fenced code block, or inside an inline ' +
     'backticked span, is example text, not a live link, and is excluded ' +
-    'from link scanning.',
+    'from link scanning. That inline-span masking is bounded to one line: a ' +
+    'span is recognised only where it opens and closes on the SAME line, ' +
+    'because a span pattern free to cross a line break lets one unpaired ' +
+    'backtick in prose pair with a backtick many lines later and blank ' +
+    'every line between them, silently deleting the text this check scans ' +
+    'and reporting the resulting emptiness as a pass. The cost is the ' +
+    'opposite, visible error: a genuinely multi-line code span is no ' +
+    'longer masked, so a "[text](path)" form written inside it is read as ' +
+    'a live link and may be over-reported.',
   'An absolute filesystem-path link is classified as non-portable by its ' +
     'leading "/" form alone; the host filesystem is never probed, so the ' +
     'classification stays deterministic.',
@@ -98,8 +114,35 @@ const BASE_STATED_LIMITS = [
     'claims an external link resolves.',
   "An in-document or cross-file anchor is resolved against the target " +
     "file's own headings using GitHub-style heading slugging; the target " +
-    "file's content beyond its heading structure is not otherwise examined."
+    "file's content beyond its heading structure is not otherwise examined.",
+  'Every path in the input envelope, and every relative link target ' +
+    'resolved against project_root, is resolved beneath the repository ' +
+    'root and refused unread when it escapes it, so an absolute path or a ' +
+    '"../" traversal degrades the run closed to skipped: unavailable ' +
+    'rather than reading a file outside the checkout; that test is ' +
+    'lexical, so a symbolic link that lives inside the checkout and ' +
+    'points outside it is not detected.'
 ];
+
+// The one signal that tells a REFUSAL apart from an unreadable file. Both
+// degrade the run closed to "skipped: unavailable" -- the spec's skip-reason
+// set has no dedicated value for a refusal and this check does not invent one
+// -- so without a distinguishing sentence the two states emit byte-identical
+// envelopes, and a fixture aimed at the root constraint would pin nothing.
+// The sentence names the ENVELOPE FIELD that was refused, never the path it
+// carried: that path is untrusted input, and echoing it back would leak the
+// very string the constraint exists to keep out of this envelope.
+function pathRefusedSentence(field) {
+  return (
+    'No further file was read for this run: the path supplied in ' + field +
+    ' resolves outside the repository root and was refused unread by the ' +
+    'root constraint. That is a containment decision, not a missing or ' +
+    'unreadable file, and this sentence is what distinguishes the two -- ' +
+    'skipped_reason is "unavailable" for both because the reason set ' +
+    'carries no dedicated value for a refusal. The refused path is ' +
+    'untrusted input and is deliberately not echoed here.'
+  );
+}
 
 function cmpStr(a, b) {
   const sa = String(a);
@@ -125,20 +168,53 @@ function findingComparator(a, b) {
   return cmpStr(a.path, b.path) || (a.line - b.line) || cmpStr(a.code, b.code);
 }
 
-function skipped(reason) {
+function skipped(reason, statedLimits) {
   return {
     check: CHECK_SLUG,
     status: 'skipped',
     skipped_reason: reason,
     verdict: null,
     findings: [],
-    stated_limits: BASE_STATED_LIMITS,
+    stated_limits: statedLimits || BASE_STATED_LIMITS,
     tool_versions: {}
   };
 }
 
+// Resolves a repository-root-relative path from the (untrusted) input
+// envelope and REFUSES one that escapes the root. Every caller reads inside
+// a try/catch whose catch degrades the run closed to "skipped: unavailable",
+// so an absolute path or a "../" traversal can never produce a pass, a
+// partial result, or an uncaught crash. The test is lexical: a symbolic link
+// that lives inside the checkout and points outside it is not detected, and
+// that limit is stated rather than implied. The refusal is TAGGED so the
+// caller can report it as a refusal rather than as a failed read; an
+// untagged throw would be indistinguishable from ENOENT in the output
+// envelope. Mirrors id-namespace-resolution.js's resolveWithinRoot.
+function resolveWithinRoot(relPath) {
+  const root = path.resolve(process.cwd());
+  const target = path.resolve(root, String(relPath));
+  const relative = path.relative(root, target);
+  if (relative === '..' || relative.startsWith('..' + path.sep) || path.isAbsolute(relative)) {
+    const err = new Error('path escapes repository root');
+    err.pathEscapesRoot = true;
+    throw err;
+  }
+  return target;
+}
+
 function readFileSyncRel(relPath) {
-  return fs.readFileSync(path.resolve(process.cwd(), relPath), 'utf8');
+  return fs.readFileSync(resolveWithinRoot(relPath), 'utf8');
+}
+
+// Degrades a failed read closed, adding the refusal sentence only when the
+// root constraint actually fired. `field` names the envelope field (or a
+// description of the resolved value) that carried the path, never the path
+// itself.
+function skippedForFailedRead(err, field) {
+  if (err && err.pathEscapesRoot) {
+    return skipped('unavailable', BASE_STATED_LIMITS.concat([pathRefusedSentence(field)]));
+  }
+  return skipped('unavailable');
 }
 
 // GitHub-style heading slug: lowercase, strip punctuation other than word
@@ -228,19 +304,34 @@ function maskFencedBlocks(text) {
   return lines.join('\n');
 }
 
-// Replaces every inline code span with equal-length blanks, after fenced
-// blocks are already masked, so a backticked bare path is never mistaken for
-// a live link. Per CommonMark an inline code span opens with a run of N
+// One BALANCED inline code span that opens and closes on the SAME line. The
+// body is [^\n]*?, never [\s\S]*?, and that is the whole point: a span
+// pattern free to cross a line break lets a single UNPAIRED backtick in prose
+// pair with a backtick many lines later, blanking every line between them.
+// Whatever those lines held -- a "[text](path)" link form -- silently
+// disappears from the scan, and the check reports the emptiness it
+// manufactured as skipped or a clean pass. Refusing to cross a line break
+// bounds that damage to the line the stray backtick sits on. The cost is the
+// opposite error, and it is deliberately the visible one: a CommonMark code
+// span that really does wrap across a line break is not masked here, so a
+// link written inside it is read as live text and may be over-reported. A
+// false finding is arguable and gets fixed; a false pass is invisible
+// (NFR-6). Per CommonMark an inline code span opens with a run of N
 // backticks (N >= 1) and closes with the next run of EXACTLY N backticks, so
 // a link inside a "``...``" span (or any longer run) is fully masked, not
 // left exposed the way a single-backtick-only pattern would leave it. The
 // opening run must not be preceded by a backtick and the closing run must
 // not be followed by one, so partial runs are never mismatched; the lazy
-// body finds the nearest equal-length closing run. An unclosed run is left
-// literal (not a code span), matching CommonMark.
+// body finds the nearest equal-length closing run on the same line. An
+// unclosed run is left literal (not a code span), matching CommonMark.
+const INLINE_CODE_SPAN_RE = /(?<!`)(`+)[^\n]*?\1(?!`)/g;
+
+// Replaces every inline code span with equal-length blanks, after fenced
+// blocks are already masked, so a backticked bare path is never mistaken for
+// a live link.
 function maskInlineCode(text) {
   const blank = (m) => m.replace(/[^\n]/g, ' ');
-  return text.replace(/(?<!`)(`+)[\s\S]*?\1(?!`)/g, blank);
+  return text.replace(INLINE_CODE_SPAN_RE, blank);
 }
 
 function lineAt(text, idx) {
@@ -287,7 +378,7 @@ function execute(input) {
   try {
     artifactRaw = readFileSyncRel(artifactPathOpt);
   } catch (e) {
-    return skipped('unavailable');
+    return skippedForFailedRead(e, 'artifact_path');
   }
 
   const artifactRelPath = normalizePath(artifactPathOpt);
@@ -374,8 +465,11 @@ function execute(input) {
 
       let exists;
       try {
-        exists = fs.existsSync(path.resolve(process.cwd(), targetRelPath));
+        exists = fs.existsSync(resolveWithinRoot(targetRelPath));
       } catch (e) {
+        if (e && e.pathEscapesRoot) {
+          return skippedForFailedRead(e, 'a relative link target resolved against project_root');
+        }
         exists = false;
       }
       if (!exists) {

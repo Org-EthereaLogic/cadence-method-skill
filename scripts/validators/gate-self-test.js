@@ -11,11 +11,19 @@
 //   Both option paths are resolved relative to the current working
 //   directory (the repository root), never relative to this script or to
 //   the input file itself, exactly as every other check's `artifact_path`
-//   and `manifest_path` are (section 2). A missing or unreadable
-//   registry_path or fixture_root, or a registry that cannot be parsed,
-//   produces "skipped: unavailable" (degrade closed). A registry that
-//   names no sibling checks (this check excludes its own slug from the
-//   count, to avoid invoking itself) produces "skipped: not-applicable".
+//   and `manifest_path` are (section 2), and both, plus every path drawn
+//   from the registry the options name (a registry entry's fixture_root and
+//   script_path), are CONSTRAINED to the repository root: a resolved path
+//   that escapes the root (an absolute path, or a "../" traversal) is
+//   refused unread/unexecuted and degrades closed, carrying its OWN
+//   stated_limits sentence naming the field that was refused -- a refusal
+//   and an unreadable file are different facts, and an envelope that cannot
+//   tell them apart cannot be used to prove the root constraint fired. A
+//   missing or unreadable registry_path or fixture_root, or a registry that
+//   cannot be parsed, produces "skipped: unavailable" (degrade closed). A
+//   registry that names no sibling checks (this check excludes its own slug
+//   from the count, to avoid invoking itself) produces "skipped:
+//   not-applicable".
 //
 //   Registry schema (scripts/validators/registry.json), one entry per
 //   registered gate check:
@@ -84,8 +92,38 @@ const STATED_LIMITS = [
     "fixture its registry entry names; the check's other fixture cases " +
     'are not re-run here.',
   'Edge-fixture hygiene is checked by directory presence only; the ' +
-    'content of a present edge fixture is not validated.'
+    'content of a present edge fixture is not validated.',
+  'Every path in the input envelope, and every path drawn from the ' +
+    'registry it names, is resolved beneath the repository root and ' +
+    'refused unread when it escapes it, so an absolute path or a "../" ' +
+    'traversal in options.registry_path or options.fixture_root degrades ' +
+    'the whole run closed to skipped: unavailable, and one in a registry ' +
+    "entry's fixture_root or script_path degrades that entry closed to " +
+    'its existing fail-severity finding without ever running the entry\'s ' +
+    'script; that test is lexical, so a symbolic link that lives inside ' +
+    'the checkout and points outside it is not detected.'
 ];
+
+// The one signal that tells a REFUSAL apart from an unreadable/missing file.
+// Both degrade closed -- the spec's skip-reason set has no dedicated value
+// for a refusal and this check does not invent one -- so without a
+// distinguishing sentence the two states would emit byte-identical
+// envelopes, and a fixture aimed at the root constraint would pin nothing.
+// The sentence names the FIELD that was refused, never the path it carried:
+// that path is untrusted input, and echoing it back would leak the very
+// string the constraint exists to keep out of this envelope.
+function pathRefusedSentence(field) {
+  return (
+    'No further file was read or executed for this run: the path ' +
+    'supplied in ' + field + ' resolves outside the repository root and ' +
+    'was refused unread/unexecuted by the root constraint. That is a ' +
+    'containment decision, not a missing or unreadable file, and this ' +
+    'sentence is what distinguishes the two -- skipped_reason is ' +
+    '"unavailable" for a whole-run refusal because the reason set carries ' +
+    'no dedicated value for a refusal. The refused path is untrusted ' +
+    'input and is deliberately not echoed here.'
+  );
+}
 
 function cmpStr(a, b) {
   const sa = String(a);
@@ -111,16 +149,39 @@ function findingComparator(a, b) {
   return cmpStr(a.path, b.path) || (a.line - b.line) || cmpStr(a.code, b.code);
 }
 
-function skipped(reason) {
+function skipped(reason, statedLimits) {
   return {
     check: CHECK_SLUG,
     status: 'skipped',
     skipped_reason: reason,
     verdict: null,
     findings: [],
-    stated_limits: STATED_LIMITS,
+    stated_limits: statedLimits || STATED_LIMITS,
     tool_versions: {}
   };
+}
+
+// Resolves a repository-root-relative path from the (untrusted) input
+// envelope or the (untrusted) registry it names, and REFUSES one that
+// escapes the root. Every caller reads inside a try/catch, so an absolute
+// path or a "../" traversal can never produce a pass, a partial result, or
+// an uncaught crash -- and for the registry's own script_path, never an
+// execution. The test is lexical: a symbolic link that lives inside the
+// checkout and points outside it is not detected, and that limit is stated
+// rather than implied. The refusal is TAGGED so the caller can report it as
+// a refusal rather than as a failed read; an untagged throw would be
+// indistinguishable from ENOENT in the output envelope. Mirrors
+// id-namespace-resolution.js's resolveWithinRoot.
+function resolveWithinRoot(relPath) {
+  const root = path.resolve(process.cwd());
+  const target = path.resolve(root, String(relPath));
+  const relative = path.relative(root, target);
+  if (relative === '..' || relative.startsWith('..' + path.sep) || path.isAbsolute(relative)) {
+    const err = new Error('path escapes repository root');
+    err.pathEscapesRoot = true;
+    throw err;
+  }
+  return target;
 }
 
 function readJsonFileSync(absPath) {
@@ -163,8 +224,11 @@ function execute(input) {
 
   let registry;
   try {
-    registry = readJsonFileSync(path.resolve(process.cwd(), registryPathOpt));
+    registry = readJsonFileSync(resolveWithinRoot(registryPathOpt));
   } catch (e) {
+    if (e && e.pathEscapesRoot) {
+      return skipped('unavailable', STATED_LIMITS.concat([pathRefusedSentence('options.registry_path')]));
+    }
     return skipped('unavailable');
   }
 
@@ -197,7 +261,15 @@ function execute(input) {
     return skipped('unavailable');
   }
 
-  const fixtureRootAbs = path.resolve(process.cwd(), fixtureRootOpt);
+  let fixtureRootAbs;
+  try {
+    fixtureRootAbs = resolveWithinRoot(fixtureRootOpt);
+  } catch (e) {
+    if (e && e.pathEscapesRoot) {
+      return skipped('unavailable', STATED_LIMITS.concat([pathRefusedSentence('options.fixture_root')]));
+    }
+    return skipped('unavailable');
+  }
   let fixtureRootDirents;
   try {
     fixtureRootDirents = fs.readdirSync(fixtureRootAbs, { withFileTypes: true });
@@ -206,6 +278,7 @@ function execute(input) {
   }
 
   const findings = [];
+  const refusedFields = new Set();
 
   // The reverse registry<->fixture-root agreement scan (below) must recognize
   // EVERY registry entry's fixture_root as registered -- INCLUDING this
@@ -234,7 +307,26 @@ function execute(input) {
   for (const entry of sortedEntries) {
     const entryFixtureRoot = typeof entry.fixture_root === 'string' ? entry.fixture_root : '';
 
-    const frAbs = entryFixtureRoot ? path.resolve(process.cwd(), entryFixtureRoot) : null;
+    // A registry entry's fixture_root is REGISTRY DATA, not the input
+    // envelope -- but it is exactly as untrusted, since the registry itself
+    // is an envelope-supplied file. A "../" escape here is refused before the
+    // directory is even stat'd, and the entry is treated identically to a
+    // fixture root that is not present on disk (same finding code, same
+    // 'fail' severity) except that the refused path is never echoed: the
+    // finding's path field carries the '(refused)' sentinel instead of the
+    // escaping path (precedent: the existing '(unset)' sentinel below).
+    let frAbs = null;
+    let fixtureRootRefused = false;
+    if (entryFixtureRoot) {
+      try {
+        frAbs = resolveWithinRoot(entryFixtureRoot);
+      } catch (e) {
+        if (e && e.pathEscapesRoot) {
+          fixtureRootRefused = true;
+          refusedFields.add("a registry entry's fixture_root");
+        }
+      }
+    }
     let usable = Boolean(frAbs) && fs.existsSync(frAbs) && fs.statSync(frAbs).isDirectory();
 
     let knownBadInputAbs = null;
@@ -242,14 +334,24 @@ function execute(input) {
       if (!entry.known_bad_case) {
         usable = false;
       } else {
-        knownBadInputAbs = path.resolve(frAbs, entry.known_bad_case, 'input.json');
-        usable = fs.existsSync(knownBadInputAbs);
+        // entry.known_bad_case is likewise registry data and can carry a
+        // "../" segment; a refusal here is treated as not-present, the same
+        // degrade-closed outcome as a missing input.json (no separate
+        // stated_limits sentence: this join is not one of the four guarded
+        // sites and no existing fixture output depends on it).
+        try {
+          knownBadInputAbs = resolveWithinRoot(path.join(entryFixtureRoot, entry.known_bad_case, 'input.json'));
+          usable = fs.existsSync(knownBadInputAbs);
+        } catch (e) {
+          usable = false;
+          knownBadInputAbs = null;
+        }
       }
     }
 
     if (!usable) {
       findings.push(mkFinding(
-        entryFixtureRoot || '(unset)',
+        fixtureRootRefused ? '(refused)' : (entryFixtureRoot || '(unset)'),
         0,
         'registry-entry-without-fixture',
         'fail',
@@ -265,32 +367,60 @@ function execute(input) {
     // self included -- CHK007.
     if (entry.slug !== CHECK_SLUG) {
       const scriptPath = typeof entry.script_path === 'string' ? entry.script_path : '';
-      const scriptAbs = path.resolve(process.cwd(), scriptPath);
-      const observed = runKnownBadFixture(scriptAbs, knownBadInputAbs);
+      let scriptAbs = null;
+      let scriptRefused = false;
+      try {
+        scriptAbs = resolveWithinRoot(scriptPath);
+      } catch (e) {
+        if (e && e.pathEscapesRoot) {
+          scriptRefused = true;
+          refusedFields.add("a registry entry's script_path");
+        }
+      }
 
-      if (observed.verdict !== entry.verdict) {
+      if (scriptRefused) {
+        // Refused BEFORE spawnSync: the out-of-root script is never executed.
         findings.push(mkFinding(
-          scriptPath,
+          '(refused)',
           0,
           'check-did-not-fire',
           'fail',
-          `check '${entry.slug}' produced verdict '${observed.verdict}' on its known-bad fixture, expected '${entry.verdict}'`
+          `check '${entry.slug}' names a script_path that resolves outside the repository root; it was refused and never executed`
         ));
-      } else if (!observed.codes.includes(entry.finding_code)) {
-        findings.push(mkFinding(
-          scriptPath,
-          0,
-          'finding-code-mismatch',
-          'fail',
-          `check '${entry.slug}' fired with the recorded verdict '${entry.verdict}' but did not carry the recorded finding code '${entry.finding_code}'`
-        ));
+      } else {
+        const observed = runKnownBadFixture(scriptAbs, knownBadInputAbs);
+
+        if (observed.verdict !== entry.verdict) {
+          findings.push(mkFinding(
+            scriptPath,
+            0,
+            'check-did-not-fire',
+            'fail',
+            `check '${entry.slug}' produced verdict '${observed.verdict}' on its known-bad fixture, expected '${entry.verdict}'`
+          ));
+        } else if (!observed.codes.includes(entry.finding_code)) {
+          findings.push(mkFinding(
+            scriptPath,
+            0,
+            'finding-code-mismatch',
+            'fail',
+            `check '${entry.slug}' fired with the recorded verdict '${entry.verdict}' but did not carry the recorded finding code '${entry.finding_code}'`
+          ));
+        }
       }
     }
 
     const edgeFixtures = Array.isArray(entry.edge_fixtures) ? entry.edge_fixtures.slice().sort(cmpStr) : [];
     for (const edgeCase of edgeFixtures) {
-      const edgeAbs = path.resolve(frAbs, edgeCase);
-      if (!fs.existsSync(edgeAbs)) {
+      // entry.edge_fixtures entries are registry data too; a refusal here is
+      // treated as not-present, matching the missing-file outcome exactly.
+      let edgeAbs = null;
+      try {
+        edgeAbs = resolveWithinRoot(path.join(entryFixtureRoot, edgeCase));
+      } catch (e) {
+        edgeAbs = null;
+      }
+      if (!edgeAbs || !fs.existsSync(edgeAbs)) {
         findings.push(mkFinding(
           path.join(entryFixtureRoot, edgeCase),
           0,
@@ -328,13 +458,21 @@ function execute(input) {
       ? 'warn'
       : 'pass';
 
+  // Refusal sentences are collected in a Set keyed by field name and
+  // appended in a fixed sorted order after the base limits, so a run's
+  // stated_limits stays a pure function of the input regardless of entry
+  // iteration order (FR-8).
+  const statedLimits = refusedFields.size
+    ? STATED_LIMITS.concat(Array.from(refusedFields).sort(cmpStr).map(pathRefusedSentence))
+    : STATED_LIMITS;
+
   return {
     check: CHECK_SLUG,
     status: 'ran',
     skipped_reason: null,
     verdict: verdict,
     findings: findings,
-    stated_limits: STATED_LIMITS,
+    stated_limits: statedLimits,
     tool_versions: {}
   };
 }

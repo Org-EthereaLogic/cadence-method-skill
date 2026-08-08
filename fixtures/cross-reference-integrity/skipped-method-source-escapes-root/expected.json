@@ -1,0 +1,18 @@
+{
+  "check": "cross-reference-integrity",
+  "status": "skipped",
+  "skipped_reason": "unavailable",
+  "verdict": null,
+  "findings": [],
+  "stated_limits": [
+    "A loose VERSION pointer (e.g. \"SOME_DOC.md (VERSION: v1.2)\") is excluded from cross-reference scanning entirely; drift on it is loose-pointer-drift's finding, not this check's (AC-13.2).",
+    "A backticked bare path in prose is repository-root-relative text, not a cross-reference, and is excluded from scanning.",
+    "\"[text](path)\" markdown link forms are excluded from scanning; resolving them is link-integrity's job.",
+    "Heading lines are used only to build the section, identifier, and table/figure/appendix namespaces; they are never themselves scanned as citations.",
+    "An identifier is treated as defined only where it appears bold (\"**PREFIX-N**\") in the artifact, its document set, or its method source; a plain mention elsewhere is not treated as a definition.",
+    "Only artifact_path is scanned for outgoing cross-references; options.document_set and options.method_source are read solely to build the resolution namespace, never scanned for their own outgoing references.",
+    "Every path in the input envelope -- artifact_path, each entry of options.document_set, and options.method_source -- is resolved beneath the repository root and refused unread when it escapes it, so an absolute path or a \"../\" traversal degrades the run closed to skipped: unavailable rather than reading a file outside the checkout; that test is lexical, so a symbolic link that lives inside the checkout and points outside it is not detected.",
+    "No further file was read for this run: the path supplied in options.method_source resolves outside the repository root and was refused unread by the root constraint. That is a containment decision, not a missing or unreadable file, and this sentence is what distinguishes the two -- skipped_reason is \"unavailable\" for both because the reason set carries no dedicated value for a refusal. The refused path is untrusted input and is deliberately not echoed here."
+  ],
+  "tool_versions": {}
+}

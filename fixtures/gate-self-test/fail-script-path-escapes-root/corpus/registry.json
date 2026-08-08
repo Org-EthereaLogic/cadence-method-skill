@@ -1,0 +1,14 @@
+{
+  "schema": "cadence.validator-registry.v1",
+  "checks": [
+    {
+      "slug": "stub-escaping-script",
+      "script_path": "../outside-root-check.js",
+      "fixture_root": "fixtures/gate-self-test/fail-script-path-escapes-root/corpus/fixtures/stub-escaping-script",
+      "known_bad_case": "known-bad",
+      "verdict": "fail",
+      "finding_code": "stub-escaping-script-finding",
+      "edge_fixtures": []
+    }
+  ]
+}

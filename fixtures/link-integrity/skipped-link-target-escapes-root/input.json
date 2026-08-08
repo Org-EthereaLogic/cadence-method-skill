@@ -1,0 +1,6 @@
+{
+  "check": "link-integrity",
+  "artifact_path": "fixtures/link-integrity/skipped-link-target-escapes-root/corpus/artifact.md",
+  "project_root": "..",
+  "options": {}
+}

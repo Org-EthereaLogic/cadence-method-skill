@@ -1,0 +1,7 @@
+{
+  "check": "cross-reference-integrity",
+  "artifact_path": "fixtures/cross-reference-integrity/skipped-method-source-escapes-root/corpus/artifact.md",
+  "options": {
+    "method_source": "../outside-root-method.md"
+  }
+}
