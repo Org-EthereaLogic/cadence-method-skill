@@ -198,8 +198,14 @@ function maskFencedBlocks(text) {
   let fenceLen = 0;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    // A CRLF artifact split on "\n" leaves a trailing "\r" on every line. The
+    // fence open/close expressions are "$"-anchored and "." never matches "\r",
+    // so a CRLF fence would neither open nor close (masking nothing, or masking
+    // to EOF). Match against a CR-stripped view; the ORIGINAL line is still what
+    // gets masked, so character offsets and reported line numbers are unchanged.
+    const bare = line.replace(/\r$/, '');
     if (!inFence) {
-      const open = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line);
+      const open = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(bare);
       // A backtick fence's info string may not contain a backtick.
       if (open && !(open[1][0] === '`' && open[2].indexOf('`') !== -1)) {
         inFence = true;
@@ -210,7 +216,7 @@ function maskFencedBlocks(text) {
     } else {
       // Neither "`" nor "~" is a regex metacharacter, so no escaping needed.
       const closeRe = new RegExp('^ {0,3}' + fenceChar + '{' + fenceLen + ',}[ \\t]*$');
-      const closes = closeRe.test(line);
+      const closes = closeRe.test(bare);
       lines[i] = line.replace(/[^\n]/g, ' ');
       if (closes) {
         inFence = false;
@@ -349,6 +355,23 @@ function execute(input) {
     } else {
       targetRelPath = normalizePath(path.posix.normalize(path.posix.join(artifactDir, filePart)));
 
+      // Classify a parent-directory ESCAPE as a portability warn BEFORE probing
+      // existence, so the verdict never depends on files OUTSIDE the declared
+      // input corpus: a "../" escape works on this host and would not elsewhere,
+      // whether or not the out-of-root target happens to exist -- keeping output
+      // a pure function of the input. Tested by path segment, not string prefix:
+      // an in-root file whose NAME merely begins with two dots (e.g. "..notes.md")
+      // relativizes to "..notes.md", which is not an escape. Only relToRoot === ".."
+      // or a "../" segment prefix escapes.
+      const relToRoot = path.posix.relative(projectRootRel, targetRelPath);
+      if (relToRoot === '..' || relToRoot.startsWith('../')) {
+        findings.push(mkFinding(
+          artifactRelPath, line, 'link-target-outside-project-root', 'warn',
+          `link '[${linkText}](${rawTarget})' resolves to '${targetRelPath}', which is outside project_root '${projectRootRel}'`
+        ));
+        continue;
+      }
+
       let exists;
       try {
         exists = fs.existsSync(path.resolve(process.cwd(), targetRelPath));
@@ -359,19 +382,6 @@ function execute(input) {
         findings.push(mkFinding(
           artifactRelPath, line, 'dangling-link-target', 'fail',
           `link '[${linkText}](${rawTarget})' points at '${targetRelPath}', which does not exist`
-        ));
-        continue;
-      }
-
-      // Outside-root is a parent-directory ESCAPE, tested by path segment,
-      // not string prefix: an in-root file whose NAME merely begins with two
-      // dots (e.g. "..notes.md") relativizes to "..notes.md", which is not an
-      // escape. Only relToRoot === ".." or a "../" segment prefix escapes.
-      const relToRoot = path.posix.relative(projectRootRel, targetRelPath);
-      if (relToRoot === '..' || relToRoot.startsWith('../')) {
-        findings.push(mkFinding(
-          artifactRelPath, line, 'link-target-outside-project-root', 'warn',
-          `link '[${linkText}](${rawTarget})' resolves to '${targetRelPath}', which is outside project_root '${projectRootRel}'`
         ));
         continue;
       }

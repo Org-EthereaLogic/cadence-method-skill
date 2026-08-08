@@ -1,0 +1,12 @@
+{
+  "check": "link-integrity",
+  "artifact_path": "fixtures/link-integrity/pass-crlf-tilde-fence-excluded/corpus/artifact.md",
+  "project_root": ".",
+  "options": {
+    "follow_anchors": true,
+    "external_schemes": [
+      "http",
+      "https"
+    ]
+  }
+}

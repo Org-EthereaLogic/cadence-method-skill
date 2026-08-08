@@ -1,0 +1,12 @@
+{
+  "check": "link-integrity",
+  "artifact_path": "fixtures/link-integrity/warn-outside-project-root-escape/corpus/sub/artifact.md",
+  "project_root": "fixtures/link-integrity/warn-outside-project-root-escape/corpus/sub",
+  "options": {
+    "follow_anchors": true,
+    "external_schemes": [
+      "http",
+      "https"
+    ]
+  }
+}

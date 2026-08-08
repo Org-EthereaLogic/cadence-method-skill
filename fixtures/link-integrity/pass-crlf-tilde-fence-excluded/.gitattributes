@@ -1,0 +1,3 @@
+# Preserve CRLF so this fixture actually exercises CRLF fence handling;
+# the repo root's `* text=auto` would otherwise normalise it to LF.
+corpus/artifact.md -text
