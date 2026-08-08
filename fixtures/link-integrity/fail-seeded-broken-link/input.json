@@ -1,0 +1,9 @@
+{
+  "check": "link-integrity",
+  "artifact_path": "fixtures/link-integrity/fail-seeded-broken-link/corpus/artifact.md",
+  "project_root": ".",
+  "options": {
+    "follow_anchors": true,
+    "external_schemes": ["http", "https"]
+  }
+}

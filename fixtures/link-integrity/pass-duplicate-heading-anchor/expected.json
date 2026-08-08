@@ -1,0 +1,15 @@
+{
+  "check": "link-integrity",
+  "status": "ran",
+  "skipped_reason": null,
+  "verdict": "pass",
+  "findings": [],
+  "stated_limits": [
+    "Only \"[text](path)\" markdown link forms are resolved; a backticked bare path in prose is repository-root-relative text, not a link, and is never scanned (CONTRIBUTING.md convention).",
+    "A \"[text](path)\" form inside a fenced code block, or inside an inline backticked span, is example text, not a live link, and is excluded from link scanning.",
+    "An absolute filesystem-path link is classified as non-portable by its leading \"/\" form alone; the host filesystem is never probed, so the classification stays deterministic.",
+    "External http(s) targets (per options.external_schemes) are never fetched (NFR-3); each is enumerated below as an unfetched target and contributes nothing to the verdict (NFR-6). A pass verdict never claims an external link resolves.",
+    "An in-document or cross-file anchor is resolved against the target file's own headings using GitHub-style heading slugging; the target file's content beyond its heading structure is not otherwise examined."
+  ],
+  "tool_versions": {}
+}

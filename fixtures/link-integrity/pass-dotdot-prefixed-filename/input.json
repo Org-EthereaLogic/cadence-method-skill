@@ -1,0 +1,9 @@
+{
+  "check": "link-integrity",
+  "artifact_path": "fixtures/link-integrity/pass-dotdot-prefixed-filename/corpus/artifact.md",
+  "project_root": "fixtures/link-integrity/pass-dotdot-prefixed-filename/corpus",
+  "options": {
+    "follow_anchors": true,
+    "external_schemes": ["http", "https"]
+  }
+}
