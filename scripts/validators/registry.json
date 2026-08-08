@@ -18,6 +18,15 @@
       "verdict": "fail",
       "finding_code": "bare-section-pointer-collides",
       "edge_fixtures": []
+    },
+    {
+      "slug": "link-integrity",
+      "script_path": "scripts/validators/link-integrity.js",
+      "fixture_root": "fixtures/link-integrity/",
+      "known_bad_case": "fail-missing-anchor",
+      "verdict": "fail",
+      "finding_code": "dangling-anchor",
+      "edge_fixtures": []
     }
   ]
 }
