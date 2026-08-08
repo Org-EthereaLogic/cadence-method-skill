@@ -152,17 +152,26 @@ function slugifyHeading(text) {
 }
 
 // Parses a document's markdown headings into a slug -> { line, title } map.
-// The first heading to produce a given slug owns it (mirrors GitHub's
-// first-occurrence behavior closely enough for a deterministic, self-
-// consistent resolution namespace).
+// The heading map is built from MASKED text (fenced blocks and inline code
+// spans blanked first) so a heading-shaped line that lives only inside a
+// fenced code block is NOT a real anchor. Duplicate headings are
+// disambiguated GitHub-style: the first occurrence of a base slug owns the
+// base ("details"), and each subsequent occurrence appends an incrementing
+// suffix ("details-1", "details-2", ...). The base slug's first-occurrence
+// ownership is preserved.
 function parseHeadingSlugs(text) {
-  const lines = text.split(/\r?\n/);
+  const masked = maskInlineCode(maskFencedBlocks(text));
+  const lines = masked.split(/\r?\n/);
   const slugs = new Map();
+  const baseSeen = new Map();
   for (let i = 0; i < lines.length; i++) {
     const m = /^#{1,6}\s+(.*)$/.exec(lines[i]);
     if (!m) continue;
     const title = m[1].trim();
-    const slug = slugifyHeading(title);
+    const base = slugifyHeading(title);
+    const count = baseSeen.get(base) || 0;
+    const slug = count === 0 ? base : base + '-' + count;
+    baseSeen.set(base, count + 1);
     if (!slugs.has(slug)) {
       slugs.set(slug, { line: i + 1, title: title });
     }
@@ -170,23 +179,62 @@ function parseHeadingSlugs(text) {
   return slugs;
 }
 
-// Replaces every fenced code block (``` ... ```) with equal-length blanks
-// (newlines preserved) so a "[text](path)" example inside one is never
-// scanned as a live link, and so surviving matches keep accurate line
-// numbers -- the same discipline cross-reference-integrity.js's
-// maskExcluded uses for the regions it owns.
+// Replaces every fenced code block with equal-length blanks (newlines
+// preserved) so a "[text](path)" example inside one is never scanned as a
+// live link, and so surviving matches keep accurate line numbers -- the
+// same discipline cross-reference-integrity.js's maskExcluded uses for the
+// regions it owns. Per CommonMark a fence opens with a run of at least three
+// backticks OR at least three tildes (indented up to three spaces) and
+// closes with a run of the SAME character at least as long as the opening
+// run, followed only by trailing whitespace. A backtick fence's info string
+// may not contain a backtick (CommonMark), so an inline code span in prose
+// is never mistaken for a fence opener. An unclosed fence extends to end of
+// document. Both fence characters are masked (a "~~~" tilde fence is a live
+// code block exactly like a "```" fence).
 function maskFencedBlocks(text) {
-  const blank = (m) => m.replace(/[^\n]/g, ' ');
-  return text.replace(/^```[^\n]*\n[\s\S]*?^```[ \t]*$/gm, blank);
+  const lines = text.split('\n');
+  let inFence = false;
+  let fenceChar = '';
+  let fenceLen = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!inFence) {
+      const open = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line);
+      // A backtick fence's info string may not contain a backtick.
+      if (open && !(open[1][0] === '`' && open[2].indexOf('`') !== -1)) {
+        inFence = true;
+        fenceChar = open[1][0];
+        fenceLen = open[1].length;
+        lines[i] = line.replace(/[^\n]/g, ' ');
+      }
+    } else {
+      // Neither "`" nor "~" is a regex metacharacter, so no escaping needed.
+      const closeRe = new RegExp('^ {0,3}' + fenceChar + '{' + fenceLen + ',}[ \\t]*$');
+      const closes = closeRe.test(line);
+      lines[i] = line.replace(/[^\n]/g, ' ');
+      if (closes) {
+        inFence = false;
+        fenceChar = '';
+        fenceLen = 0;
+      }
+    }
+  }
+  return lines.join('\n');
 }
 
-// Replaces every inline backticked span with equal-length blanks, after
-// fenced blocks are already masked, so a backticked bare path is never
-// mistaken for a live link and no stray backtick pairs inside a masked
-// fenced block interfere with this simpler line-bound pattern.
+// Replaces every inline code span with equal-length blanks, after fenced
+// blocks are already masked, so a backticked bare path is never mistaken for
+// a live link. Per CommonMark an inline code span opens with a run of N
+// backticks (N >= 1) and closes with the next run of EXACTLY N backticks, so
+// a link inside a "``...``" span (or any longer run) is fully masked, not
+// left exposed the way a single-backtick-only pattern would leave it. The
+// opening run must not be preceded by a backtick and the closing run must
+// not be followed by one, so partial runs are never mismatched; the lazy
+// body finds the nearest equal-length closing run. An unclosed run is left
+// literal (not a code span), matching CommonMark.
 function maskInlineCode(text) {
   const blank = (m) => m.replace(/[^\n]/g, ' ');
-  return text.replace(/`[^`\n]*`/g, blank);
+  return text.replace(/(?<!`)(`+)[\s\S]*?\1(?!`)/g, blank);
 }
 
 function lineAt(text, idx) {
@@ -315,8 +363,12 @@ function execute(input) {
         continue;
       }
 
+      // Outside-root is a parent-directory ESCAPE, tested by path segment,
+      // not string prefix: an in-root file whose NAME merely begins with two
+      // dots (e.g. "..notes.md") relativizes to "..notes.md", which is not an
+      // escape. Only relToRoot === ".." or a "../" segment prefix escapes.
       const relToRoot = path.posix.relative(projectRootRel, targetRelPath);
-      if (relToRoot.startsWith('..')) {
+      if (relToRoot === '..' || relToRoot.startsWith('../')) {
         findings.push(mkFinding(
           artifactRelPath, line, 'link-target-outside-project-root', 'warn',
           `link '[${linkText}](${rawTarget})' resolves to '${targetRelPath}', which is outside project_root '${projectRootRel}'`

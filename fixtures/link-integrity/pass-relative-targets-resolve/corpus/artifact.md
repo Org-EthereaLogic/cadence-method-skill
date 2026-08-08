@@ -13,7 +13,7 @@ and must not be flagged (CONTRIBUTING.md convention).
 Here is an excluded example, a link form that lives only inside a fenced
 code block and must never be resolved:
 
-```
+```text
 [fenced example](missing-in-fence.md)
 ```
 
