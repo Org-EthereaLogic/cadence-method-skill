@@ -1,0 +1,23 @@
+{
+  "schema": "cadence.validator-registry.v1",
+  "checks": [
+    {
+      "slug": "stub-good-check",
+      "script_path": "fixtures/gate-self-test/fail-entry-fixture-root-escapes-root/corpus/stub-good-check.js",
+      "fixture_root": "fixtures/gate-self-test/fail-entry-fixture-root-escapes-root/corpus/fixtures/stub-good-check",
+      "known_bad_case": "known-bad",
+      "verdict": "fail",
+      "finding_code": "stub-good-finding",
+      "edge_fixtures": []
+    },
+    {
+      "slug": "stub-escaping-root",
+      "script_path": "fixtures/gate-self-test/fail-entry-fixture-root-escapes-root/corpus/stub-escaping-root.js",
+      "fixture_root": "../outside-root-fixtures",
+      "known_bad_case": "known-bad",
+      "verdict": "fail",
+      "finding_code": "stub-escaping-root-finding",
+      "edge_fixtures": []
+    }
+  ]
+}

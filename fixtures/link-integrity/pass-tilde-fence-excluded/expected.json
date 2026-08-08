@@ -6,10 +6,11 @@
   "findings": [],
   "stated_limits": [
     "Only \"[text](path)\" markdown link forms are resolved; a backticked bare path in prose is repository-root-relative text, not a link, and is never scanned (CONTRIBUTING.md convention).",
-    "A \"[text](path)\" form inside a fenced code block, or inside an inline backticked span, is example text, not a live link, and is excluded from link scanning.",
+    "A \"[text](path)\" form inside a fenced code block, or inside an inline backticked span, is example text, not a live link, and is excluded from link scanning. That inline-span masking is bounded to one line: a span is recognised only where it opens and closes on the SAME line, because a span pattern free to cross a line break lets one unpaired backtick in prose pair with a backtick many lines later and blank every line between them, silently deleting the text this check scans and reporting the resulting emptiness as a pass. The cost is the opposite, visible error: a genuinely multi-line code span is no longer masked, so a \"[text](path)\" form written inside it is read as a live link and may be over-reported.",
     "An absolute filesystem-path link is classified as non-portable by its leading \"/\" form alone; the host filesystem is never probed, so the classification stays deterministic.",
     "External http(s) targets (per options.external_schemes) are never fetched (NFR-3); each is enumerated below as an unfetched target and contributes nothing to the verdict (NFR-6). A pass verdict never claims an external link resolves.",
-    "An in-document or cross-file anchor is resolved against the target file's own headings using GitHub-style heading slugging; the target file's content beyond its heading structure is not otherwise examined."
+    "An in-document or cross-file anchor is resolved against the target file's own headings using GitHub-style heading slugging; the target file's content beyond its heading structure is not otherwise examined.",
+    "Every path in the input envelope, and every relative link target resolved against project_root, is resolved beneath the repository root and refused unread when it escapes it, so an absolute path or a \"../\" traversal degrades the run closed to skipped: unavailable rather than reading a file outside the checkout; that test is lexical, so a symbolic link that lives inside the checkout and points outside it is not detected."
   ],
   "tool_versions": {}
 }

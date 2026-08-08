@@ -1,0 +1,6 @@
+{
+  "check": "link-integrity",
+  "artifact_path": "fixtures/link-integrity/fail-stray-backtick-does-not-mask-broken-link/corpus/artifact.md",
+  "project_root": ".",
+  "options": {}
+}

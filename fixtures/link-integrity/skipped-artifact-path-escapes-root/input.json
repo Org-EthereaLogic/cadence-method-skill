@@ -1,0 +1,6 @@
+{
+  "check": "link-integrity",
+  "artifact_path": "../outside-root-artifact.md",
+  "project_root": ".",
+  "options": {}
+}

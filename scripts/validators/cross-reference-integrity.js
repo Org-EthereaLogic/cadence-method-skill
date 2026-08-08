@@ -14,9 +14,16 @@
 //   options.method_source are all resolved relative to the current working
 //   directory (the repository root), never relative to this script or to
 //   the input file itself, exactly as every other check's artifact_path is
-//   (section 2). A missing artifact_path, an unreadable artifact_path, or an
-//   unreadable entry of options.document_set or options.method_source
-//   produces "skipped: unavailable" (degrade closed).
+//   (section 2), and every one of them is CONSTRAINED to the repository
+//   root: a resolved path that escapes the root (an absolute path, or a
+//   "../" traversal) is refused unread and degrades the run closed to
+//   "skipped: unavailable", carrying its OWN stated_limits sentence naming
+//   the envelope field that was refused -- a refusal and an unreadable file
+//   are different facts, and an envelope that cannot tell them apart cannot
+//   be used to prove the root constraint fired. A missing artifact_path, an
+//   unreadable artifact_path, or an unreadable entry of options.document_set
+//   or options.method_source produces "skipped: unavailable" (degrade
+//   closed).
 //
 //   Only artifact_path is scanned for OUTGOING cross-references.
 //   options.document_set and options.method_source are read solely to
@@ -105,8 +112,35 @@ const STATED_LIMITS = [
     'source; a plain mention elsewhere is not treated as a definition.',
   'Only artifact_path is scanned for outgoing cross-references; ' +
     'options.document_set and options.method_source are read solely to ' +
-    'build the resolution namespace, never scanned for their own outgoing references.'
+    'build the resolution namespace, never scanned for their own outgoing references.',
+  'Every path in the input envelope -- artifact_path, each entry of ' +
+    'options.document_set, and options.method_source -- is resolved ' +
+    'beneath the repository root and refused unread when it escapes it, so ' +
+    'an absolute path or a "../" traversal degrades the run closed to ' +
+    'skipped: unavailable rather than reading a file outside the checkout; ' +
+    'that test is lexical, so a symbolic link that lives inside the ' +
+    'checkout and points outside it is not detected.'
 ];
+
+// The one signal that tells a REFUSAL apart from an unreadable file. Both
+// degrade the run closed to "skipped: unavailable" -- the spec's skip-reason
+// set has no dedicated value for a refusal and this check does not invent one
+// -- so without a distinguishing sentence the two states emit byte-identical
+// envelopes, and a fixture aimed at the root constraint would pin nothing.
+// The sentence names the ENVELOPE FIELD that was refused, never the path it
+// carried: that path is untrusted input, and echoing it back would leak the
+// very string the constraint exists to keep out of this envelope.
+function pathRefusedSentence(field) {
+  return (
+    'No further file was read for this run: the path supplied in ' + field +
+    ' resolves outside the repository root and was refused unread by the ' +
+    'root constraint. That is a containment decision, not a missing or ' +
+    'unreadable file, and this sentence is what distinguishes the two -- ' +
+    'skipped_reason is "unavailable" for both because the reason set ' +
+    'carries no dedicated value for a refusal. The refused path is ' +
+    'untrusted input and is deliberately not echoed here.'
+  );
+}
 
 function cmpStr(a, b) {
   const sa = String(a);
@@ -142,16 +176,48 @@ function findingComparator(a, b) {
   return cmpStr(a.path, b.path) || (a.line - b.line) || cmpStr(a.code, b.code);
 }
 
-function skipped(reason) {
+function skipped(reason, statedLimits) {
   return {
     check: CHECK_SLUG,
     status: 'skipped',
     skipped_reason: reason,
     verdict: null,
     findings: [],
-    stated_limits: STATED_LIMITS,
+    stated_limits: statedLimits || STATED_LIMITS,
     tool_versions: {}
   };
+}
+
+// Resolves a repository-root-relative path from the (untrusted) input
+// envelope and REFUSES one that escapes the root. Every caller reads inside
+// a try/catch whose catch degrades the run closed to "skipped: unavailable",
+// so an absolute path or a "../" traversal can never produce a pass, a
+// partial result, or an uncaught crash. The test is lexical: a symbolic link
+// that lives inside the checkout and points outside it is not detected, and
+// that limit is stated rather than implied. The refusal is TAGGED so the
+// caller can report it as a refusal rather than as a failed read; an
+// untagged throw would be indistinguishable from ENOENT in the output
+// envelope. Mirrors id-namespace-resolution.js's resolveWithinRoot.
+function resolveWithinRoot(relPath) {
+  const root = path.resolve(process.cwd());
+  const target = path.resolve(root, String(relPath));
+  const relative = path.relative(root, target);
+  if (relative === '..' || relative.startsWith('..' + path.sep) || path.isAbsolute(relative)) {
+    const err = new Error('path escapes repository root');
+    err.pathEscapesRoot = true;
+    throw err;
+  }
+  return target;
+}
+
+// Degrades a failed read closed, adding the refusal sentence only when the
+// root constraint actually fired. `field` names the envelope key that
+// carried the path, never the path itself.
+function skippedForFailedRead(err, field) {
+  if (err && err.pathEscapesRoot) {
+    return skipped('unavailable', STATED_LIMITS.concat([pathRefusedSentence(field)]));
+  }
+  return skipped('unavailable');
 }
 
 // Parses a document's markdown headings into two namespaces: `sections`
@@ -406,7 +472,7 @@ function scanCitations(maskedText, ctx) {
 }
 
 function readFileSyncRel(relPath) {
-  return fs.readFileSync(path.resolve(process.cwd(), relPath), 'utf8');
+  return fs.readFileSync(resolveWithinRoot(relPath), 'utf8');
 }
 
 function execute(input) {
@@ -431,7 +497,7 @@ function execute(input) {
   try {
     artifactRaw = readFileSyncRel(artifactPathOpt);
   } catch (e) {
-    return skipped('unavailable');
+    return skippedForFailedRead(e, 'artifact_path');
   }
 
   const documentSetDocs = [];
@@ -440,7 +506,7 @@ function execute(input) {
     try {
       raw = readFileSyncRel(docPath);
     } catch (e) {
-      return skipped('unavailable');
+      return skippedForFailedRead(e, 'options.document_set');
     }
     const parsed = parseHeadings(raw);
     documentSetDocs.push({
@@ -460,7 +526,7 @@ function execute(input) {
     try {
       raw = readFileSyncRel(methodSourceOpt);
     } catch (e) {
-      return skipped('unavailable');
+      return skippedForFailedRead(e, 'options.method_source');
     }
     const parsed = parseHeadings(raw);
     methodSections = parsed.sections;
