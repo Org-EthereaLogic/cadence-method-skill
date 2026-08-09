@@ -40,9 +40,9 @@
 //   The text before the cell's first comma is the class HEAD; each
 //   comma-separated part after it is one required PARAMETER SEGMENT, and
 //   that segment's own words are the required SURFACE. No parameter label
-//   grammar is invented here: a tag spelled exactly as the reference spells
-//   it always satisfies its class, and a tag that fills the segment in
-//   satisfies it when every word of the declared segment is accounted for:
+//   grammar is invented here: a tag satisfies its class when every word of
+//   the declared segment is accounted for -- and a date template counts
+//   only when a REAL date of that form fills it in:
 //
 //     - a word the reference itself DECLARES as a parameter name -- one
 //       written in backticks in the reference's own prose AND appearing in
@@ -63,8 +63,10 @@
 //   "(interview record, Speaker Jordan Alvarez 3/15)",
 //   "(operator-substantiated, Acme Robotics)",
 //   "(engagement record, ENG-2024-003 2024-03-01)" and
-//   "(operator instruction, 2026-01-15)" all satisfy their classes, and so
-//   does every one of those cells copied verbatim out of the reference.
+//   "(operator instruction, 2026-01-15)" all satisfy their classes. A cell
+//   copied out of the reference with its template UNFILLED
+//   ("verified YYYY-MM-DD" as literal text) does NOT: Appendix A requires
+//   the date, and an unfilled template token is not one.
 //   A missing segment or an unaccounted-for declared word is
 //   "tag-parameter-missing"; a date present in the wrong form is
 //   "tag-parameter-malformed". A head the reference does not declare is
@@ -167,8 +169,10 @@ const BASE_STATED_LIMITS = [
     'amendment introduces -- is required literally. That default is a ' +
     'deliberate FAIL-CLOSED: an amended row whose parameter this parse ' +
     'cannot otherwise interpret is still enforced rather than dropped, at ' +
-    'the cost of rejecting a tag that paraphrases it. A tag spelled ' +
-    'exactly as the reference spells the class always satisfies it.',
+    'the cost of rejecting a tag that paraphrases it. A date template is ' +
+    'satisfied only by a real date of the declared form -- a tag carrying ' +
+    'the unfilled template text ("verified YYYY-MM-DD") is malformed, ' +
+    'because Appendix A requires the date and unfilled template text is not one.',
   'The claim unit is the logical paragraph: a maximal run of consecutive ' +
     'claim-bearing prose lines, so a hard-wrapped paragraph whose closing ' +
     'line carries the tag is one tagged claim. Within a paragraph each tag ' +
@@ -713,13 +717,14 @@ function splitTagSegments(inner, declaredCount) {
   return { head: head, segments: rest };
 }
 
-// Tests one supplied parameter segment against one DECLARED segment. The
-// declared spelling itself always satisfies (that is the reference's own
-// surface); otherwise every declared word must be accounted for.
+// Tests one supplied parameter segment against one DECLARED segment: every
+// declared word must be accounted for. A date template is satisfied only by
+// a REAL date of the declared form -- the unfilled template text itself
+// ("YYYY-MM-DD") never satisfies, because Appendix A requires the date and
+// an unfilled template token is not one.
 function evaluateSegment(declared, actual) {
   const problems = [];
   const actualTrimmed = String(actual || '').trim();
-  if (actualTrimmed === declared.declared.trim()) return problems;
   if (!actualTrimmed) {
     problems.push({ token: declared.declared, issue: 'missing', isDate: false });
     return problems;
@@ -731,7 +736,7 @@ function evaluateSegment(declared, actual) {
       const hit = actualTokens.some((a) => a.toLowerCase() === t.text.toLowerCase());
       if (!hit) problems.push({ token: t.text, issue: 'missing', isDate: false });
     } else if (t.role === 'date') {
-      const hit = actualTokens.some((a) => t.re.test(a) || a === t.text);
+      const hit = actualTokens.some((a) => t.re.test(a));
       if (!hit) {
         problems.push({ token: t.text, issue: carriesDigits ? 'malformed' : 'missing', isDate: true });
       }
@@ -1021,6 +1026,10 @@ function scanFencedForMalformedTags(pathRel, rawLines, fencedLines, classes) {
       if (!headKey || !isTagShapedHead(normSpace(rawHead))) continue;
       const exact = classes.find((c) => c.headKey === headKey);
       if (exact) {
+        // A fenced example reproducing a class's DECLARED spelling verbatim
+        // (template tokens and all) is correct documentation of the row, not
+        // a malformed example -- only live claim text must fill templates in.
+        if (normSpace(inner).toLowerCase() === normSpace(exact.label).toLowerCase()) continue;
         const result = classifyTagGroup(inner, classes);
         if (result.status === 'valid') continue;
         findings.push(mkFinding(
@@ -1102,17 +1111,26 @@ function execute(input) {
   const dynamicLimits = [];
 
   if (excludeAppendix) {
-    const region = detectAppendixReproduction(rawLines, classes.rows, referenceAppendixLines(referenceRaw));
+    const refLines = referenceAppendixLines(referenceRaw);
+    const region = detectAppendixReproduction(rawLines, classes.rows, refLines);
     if (region) {
+      // Blank only the lines actually reproduced from the reference's own
+      // appendix (plus blanks and the reproduction's heading). A non-reference
+      // line INSERTED between reproduced rows is live artifact text and stays
+      // scanned -- the exclusion covers the reproduction, not its line span.
       for (let i = region.startLine; i < region.endLine; i++) {
-        maskedLines[i] = maskedLines[i].replace(/[^\n]/g, ' ');
+        const t = (rawLines[i] || '').trim();
+        if (t === '' || refLines.has(t) || /^#{1,6}\s+.*Appendix A/i.test(t)) {
+          maskedLines[i] = maskedLines[i].replace(/[^\n]/g, ' ');
+        }
       }
       dynamicLimits.push(
-        "the artifact's own verbatim Appendix A reproduction (lines " +
+        "the artifact's own verbatim Appendix A reproduction (within lines " +
           (region.startLine + 1) + '-' + region.endLine + ', every class row of the ' +
           'supplied reference matched byte-for-byte) was excluded from claim scanning; ' +
-          'every class token inside it is documentation, not a claim, and it contributes ' +
-          'no findings'
+          'only lines reproduced verbatim from the reference appendix are excluded -- ' +
+          'a non-reference line inserted inside the span remains scanned -- and the ' +
+          'reproduction contributes no findings'
       );
     }
   }
@@ -1177,29 +1195,39 @@ module.exports = { manifest, execute };
 
 if (require.main === module) {
   const arg = process.argv[2];
-  let raw;
+  // Exit via process.exitCode, never process.exit(): an immediate exit can
+  // discard asynchronously buffered stdout when it is a pipe, truncating the
+  // one JSON envelope a harness reads. Setting exitCode lets the process end
+  // naturally after the stream drains.
+  let raw = null;
   try {
     raw = (!arg || arg === '-') ? fs.readFileSync(0, 'utf8') : fs.readFileSync(arg, 'utf8');
   } catch (e) {
     process.stderr.write('evidence-tag-grammar: unable to read input\n');
-    process.exit(3);
+    process.exitCode = 3;
   }
 
-  let parsedInput;
-  try {
-    parsedInput = JSON.parse(raw);
-  } catch (e) {
-    process.stderr.write('evidence-tag-grammar: malformed JSON input\n');
-    process.exit(3);
-  }
+  if (raw !== null) {
+    let parsedInput;
+    let parsed = false;
+    try {
+      parsedInput = JSON.parse(raw);
+      parsed = true;
+    } catch (e) {
+      process.stderr.write('evidence-tag-grammar: malformed JSON input\n');
+      process.exitCode = 3;
+    }
 
-  const output = execute(parsedInput);
-  process.stdout.write(JSON.stringify(output, null, 2) + '\n');
+    if (parsed) {
+      const output = execute(parsedInput);
+      process.stdout.write(JSON.stringify(output, null, 2) + '\n');
 
-  const EXIT_CODES = { pass: 0, warn: 10, fail: 20 };
-  let exitCode = 30;
-  if (output.status !== 'skipped') {
-    exitCode = Object.prototype.hasOwnProperty.call(EXIT_CODES, output.verdict) ? EXIT_CODES[output.verdict] : 20;
+      const EXIT_CODES = { pass: 0, warn: 10, fail: 20 };
+      let exitCode = 30;
+      if (output.status !== 'skipped') {
+        exitCode = Object.prototype.hasOwnProperty.call(EXIT_CODES, output.verdict) ? EXIT_CODES[output.verdict] : 20;
+      }
+      process.exitCode = exitCode;
+    }
   }
-  process.exit(exitCode);
 }

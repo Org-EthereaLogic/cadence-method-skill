@@ -1,6 +1,6 @@
 # Tag Forms — Fixture Artifact
 
-Each claim below carries its class spelled exactly as the seeded reference spells it, template tokens and all. (brief)
+Each tagged claim below carries its class with the reference's template tokens left UNFILLED - this fixture pins that unfilled template text is not a date and fails the gate. (brief)
 
 The sponsor's verbal mandate was captured in a dated meeting note. (interview record, Speaker M/DD)
 

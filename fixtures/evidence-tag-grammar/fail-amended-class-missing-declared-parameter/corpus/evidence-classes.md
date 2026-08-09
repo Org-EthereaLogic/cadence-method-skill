@@ -25,6 +25,6 @@ Three classes take a parameter that is not a date, and all three are required in
 | | *(operator instruction, YYYY-MM-DD)* | A dated operator decision, authorization, ownership fact, or resolution that the repository cannot settle. Not a source for a separate claim about a client. |
 | **Unvalidated** | *(assumption — to validate with the business)* | A stated premise not yet confirmed. Each one maps to an open question (`Q1`, `Q2`, …). |
 | **Project-added (this project's amendment)** | *(internal memo, retrieved YYYY-MM-DD)* | An internal memorandum recording a decision, checked on the stated date. Declared by this project's own amendment, not by the method. |
-| | *(court filing, Docket)* | A filed court document, identified by its docket number. Declared by this project's own amendment; the parameter token is this project's, not one the method names. |
+| | *(court filing, Docket)* | A filed court document, identified by its `Docket` number, which the tag supplies. Declared by this project's own amendment; the parameter token is this project's, not one the method names. |
 
 Two rules govern the set: **absent is a valid outcome** — a claim that fits no class is cut, not softened — and **never claim more verification than was performed.** A project may add a class by amending this appendix; it may not silently widen an existing one.

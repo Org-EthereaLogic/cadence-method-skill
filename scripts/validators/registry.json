@@ -70,7 +70,7 @@
       "finding_code": "claim-untagged",
       "edge_fixtures": [
         "pass-all-eleven-classes",
-        "pass-appendix-a-spelled-tags",
+        "fail-unfilled-template-tokens",
         "pass-appendix-a-reproduction",
         "pass-amended-reference-twelfth-class",
         "pass-hard-wrapped-paragraphs",
