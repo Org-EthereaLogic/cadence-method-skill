@@ -1,0 +1,10 @@
+{
+  "check": "evidence-tag-grammar",
+  "artifact_path": "fixtures/evidence-tag-grammar/warn-require-tags-false-downgrades/corpus/artifact.md",
+  "boundary": "draft-to-candidate",
+  "references": { "evidence_classes": "fixtures/evidence-tag-grammar/warn-require-tags-false-downgrades/corpus/evidence-classes.md" },
+  "options": {
+    "require_tags": false,
+    "excluded_regions": ["fenced", "appendix-a-reproduction"]
+  }
+}
