@@ -320,10 +320,8 @@ function skipped(reason, statedLimits) {
 // never as a crash. Both passes throw the SAME TAGGED err.pathEscapesRoot on
 // an escape, so the caller can report a refusal distinctly from a failed
 // read; an untagged throw would be indistinguishable from ENOENT in the
-// output envelope. Character-identical in all four guarded validators
-// (link-integrity.js, cross-reference-integrity.js, gate-self-test.js,
-// id-namespace-resolution.js) by contract -- containment semantics must stay
-// uniform across them.
+// output envelope. Character-identical in every guarded validator by
+// contract -- containment semantics must stay uniform across them.
 function resolveWithinRoot(relPath) {
   const root = path.resolve(process.cwd());
   const target = path.resolve(root, String(relPath));
