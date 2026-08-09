@@ -60,6 +60,37 @@
         "skipped-malformed-baseline-entry-not-an-object",
         "skipped-reference-has-no-reserved-section"
       ]
+    },
+    {
+      "slug": "evidence-tag-grammar",
+      "script_path": "scripts/validators/evidence-tag-grammar.js",
+      "fixture_root": "fixtures/evidence-tag-grammar/",
+      "known_bad_case": "fail-untagged-claim",
+      "verdict": "fail",
+      "finding_code": "claim-untagged",
+      "edge_fixtures": [
+        "pass-all-eleven-classes",
+        "fail-unfilled-template-tokens",
+        "pass-appendix-a-reproduction",
+        "pass-amended-reference-twelfth-class",
+        "pass-hard-wrapped-paragraphs",
+        "pass-corrected-tagged-claim",
+        "pass-ordinary-parenthetical-aside",
+        "fail-aside-only-claim-untagged",
+        "warn-malformed-tag-inside-fence",
+        "warn-require-tags-false-downgrades",
+        "fail-missing-required-parameter",
+        "fail-class-outside-closed-set",
+        "fail-two-classes-one-claim",
+        "fail-amended-class-missing-declared-parameter",
+        "fail-appendix-a-heading-not-reproduction",
+        "fail-seeded-untagged-claim",
+        "skip-seeded-reference-absent",
+        "skipped-no-claims-not-applicable",
+        "skipped-artifact-path-escapes-root",
+        "skipped-evidence-classes-path-escapes-root",
+        "skipped-symlink-artifact-escapes-root"
+      ]
     }
   ]
 }

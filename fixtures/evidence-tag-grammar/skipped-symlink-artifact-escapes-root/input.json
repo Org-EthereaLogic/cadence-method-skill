@@ -1,0 +1,7 @@
+{
+  "check": "evidence-tag-grammar",
+  "artifact_path": "fixtures/evidence-tag-grammar/skipped-symlink-artifact-escapes-root/corpus/outside-root",
+  "boundary": "draft-to-candidate",
+  "references": { "evidence_classes": "fixtures/evidence-tag-grammar/skipped-symlink-artifact-escapes-root/corpus/evidence-classes.md" },
+  "options": {}
+}

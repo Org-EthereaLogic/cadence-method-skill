@@ -1,0 +1,10 @@
+{
+  "check": "evidence-tag-grammar",
+  "artifact_path": "fixtures/evidence-tag-grammar/pass-all-eleven-classes/corpus/artifact.md",
+  "boundary": "draft-to-candidate",
+  "references": { "evidence_classes": "fixtures/evidence-tag-grammar/pass-all-eleven-classes/corpus/evidence-classes.md" },
+  "options": {
+    "require_tags": true,
+    "excluded_regions": ["fenced", "appendix-a-reproduction"]
+  }
+}

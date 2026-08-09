@@ -1,0 +1,7 @@
+{
+  "check": "evidence-tag-grammar",
+  "artifact_path": "../outside-root-artifact.md",
+  "boundary": "draft-to-candidate",
+  "references": { "evidence_classes": "fixtures/evidence-tag-grammar/skipped-artifact-path-escapes-root/corpus/evidence-classes.md" },
+  "options": {}
+}
