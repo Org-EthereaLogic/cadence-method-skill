@@ -1,0 +1,6 @@
+{
+  "check": "loose-pointer-drift",
+  "artifact_path": "fixtures/loose-pointer-drift/warn-bare-path-recognized-without-backticks/corpus/artifact.md",
+  "manifest_path": "fixtures/loose-pointer-drift/warn-bare-path-recognized-without-backticks/corpus/manifest.json",
+  "options": { "version_authority": "documents[].current_version" }
+}

@@ -1,0 +1,5 @@
+{
+  "document_set": {
+    "selection_rationale": "Truncated on purpose -- this file is not valid JSON.",
+    "documents": [
+      { "path": "docs/design/COMPANION_ONE.md", "current_version": "v2.3"

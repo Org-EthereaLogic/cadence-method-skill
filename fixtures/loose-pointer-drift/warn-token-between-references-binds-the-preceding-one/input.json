@@ -1,0 +1,6 @@
+{
+  "check": "loose-pointer-drift",
+  "artifact_path": "fixtures/loose-pointer-drift/warn-token-between-references-binds-the-preceding-one/corpus/artifact.md",
+  "manifest_path": "fixtures/loose-pointer-drift/warn-token-between-references-binds-the-preceding-one/corpus/manifest.json",
+  "options": { "version_authority": "documents[].current_version" }
+}

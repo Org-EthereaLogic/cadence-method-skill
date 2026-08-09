@@ -1,0 +1,6 @@
+{
+  "check": "loose-pointer-drift",
+  "artifact_path": "fixtures/loose-pointer-drift/pass-reference-inside-parenthetical-aside-refused/corpus/artifact.md",
+  "manifest_path": "fixtures/loose-pointer-drift/pass-reference-inside-parenthetical-aside-refused/corpus/manifest.json",
+  "options": { "version_authority": "documents[].current_version" }
+}

@@ -1,0 +1,26 @@
+{
+  "document_set": {
+    "selection_rationale": "Fixture corpus for the loose-pointer-drift validator: a MULTI-DOCUMENT manifest, the corpus dimension the single-document cases cannot reach.",
+    "documents": [
+      {
+        "path": "docs/design/COMPANION_ONE.md",
+        "type": "companion",
+        "upstream_dependencies": [],
+        "selection_rationale": "Fixture companion document, asserted at v2.3, standing to the LEFT of the equidistant token.",
+        "current_version": "v2.3"
+      },
+      {
+        "path": "docs/design/COMPANION_TWO.md",
+        "type": "companion",
+        "upstream_dependencies": [],
+        "selection_rationale": "Fixture companion document, asserted at v1.4, standing to the RIGHT of the equidistant token and naming no version of its own.",
+        "current_version": "v1.4"
+      }
+    ]
+  },
+  "authority_document": {
+    "path": "",
+    "type": "",
+    "current_version": ""
+  }
+}

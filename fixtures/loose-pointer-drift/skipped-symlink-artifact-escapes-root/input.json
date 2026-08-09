@@ -1,0 +1,6 @@
+{
+  "check": "loose-pointer-drift",
+  "artifact_path": "fixtures/loose-pointer-drift/skipped-symlink-artifact-escapes-root/corpus/outside-root",
+  "manifest_path": "fixtures/loose-pointer-drift/skipped-symlink-artifact-escapes-root/corpus/manifest.json",
+  "options": { "version_authority": "documents[].current_version" }
+}

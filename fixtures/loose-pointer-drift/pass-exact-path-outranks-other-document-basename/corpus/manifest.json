@@ -1,0 +1,26 @@
+{
+  "document_set": {
+    "selection_rationale": "Fixture corpus for the loose-pointer-drift validator: a MULTI-DOCUMENT manifest, the corpus dimension the single-document cases cannot reach.",
+    "documents": [
+      {
+        "path": "docs/design/COMPANION_ONE.md",
+        "type": "companion",
+        "upstream_dependencies": [],
+        "selection_rationale": "Fixture companion document, asserted at v2.3; its BASENAME collides with the second document's declared path and it must not capture the occurrence.",
+        "current_version": "v2.3"
+      },
+      {
+        "path": "COMPANION_ONE.md",
+        "type": "companion",
+        "upstream_dependencies": [],
+        "selection_rationale": "Fixture companion document declared at the repository root, asserted at v1.4; its declared PATH is what the artifact names.",
+        "current_version": "v1.4"
+      }
+    ]
+  },
+  "authority_document": {
+    "path": "",
+    "type": "",
+    "current_version": ""
+  }
+}
