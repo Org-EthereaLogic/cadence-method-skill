@@ -150,7 +150,7 @@ function entryPathRefusedSentence(field) {
     'This is a per-entry refusal, not a whole-run one: the path supplied ' +
     'in ' + field + ' resolves outside the repository root and was ' +
     'refused unread/unexecuted by the root constraint, but the run did ' +
-    'NOT stop -- sibling registry entries were still evaluated, and this ' +
+    'NOT stop -- any sibling registry entries were still evaluated, and this ' +
     'entry alone degraded closed to its existing finding for that gap. ' +
     'That is a containment decision, not a missing or unreadable file, ' +
     'and this sentence is what distinguishes the two -- skipped_reason ' +

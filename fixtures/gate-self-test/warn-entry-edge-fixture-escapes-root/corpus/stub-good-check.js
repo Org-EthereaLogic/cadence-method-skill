@@ -1,5 +1,5 @@
 // INPUT: any JSON file (content ignored) -- fixed-behavior test double used
-//   only by fixtures/gate-self-test/fail-entry-edge-fixture-escapes-root/.
+//   only by fixtures/gate-self-test/warn-entry-edge-fixture-escapes-root/.
 //   It fires its recorded known-bad verdict and finding code correctly; the
 //   corpus's registry names an edge_fixtures entry that escapes the
 //   repository root, so the self-test must refuse that entry rather than
