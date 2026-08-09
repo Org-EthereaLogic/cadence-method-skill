@@ -95,13 +95,24 @@ const STATED_LIMITS = [
     'content of a present edge fixture is not validated.',
   'Every path in the input envelope, and every path drawn from the ' +
     'registry it names, is resolved beneath the repository root and ' +
-    'refused unread when it escapes it, so an absolute path or a "../" ' +
-    'traversal in options.registry_path or options.fixture_root degrades ' +
-    'the whole run closed to skipped: unavailable, and one in a registry ' +
-    "entry's fixture_root or script_path degrades that entry closed to " +
-    'its existing fail-severity finding without ever running the entry\'s ' +
-    'script; that test is lexical, so a symbolic link that lives inside ' +
-    'the checkout and points outside it is not detected.'
+    'refused unread when it escapes it. An absolute path or a "../" ' +
+    'traversal in options.registry_path degrades the whole run closed to ' +
+    'skipped: unavailable; the same is true of options.fixture_root, but ' +
+    'only once the registry is known to name at least one sibling entry ' +
+    '-- with none, the run already returned skipped: not-applicable ' +
+    'before options.fixture_root is ever resolved. A registry entry\'s ' +
+    "fixture_root or script_path escaping the root degrades that entry " +
+    "closed to its existing fail-severity finding without ever running " +
+    "the entry's script; one of its edge_fixtures entries escaping the " +
+    'root degrades that one edge fixture closed to the existing ' +
+    'edge-fixture-absent warn finding without ever reading it. The ' +
+    'containment test also resolves symbolic links: fs.realpathSync is ' +
+    'applied to both the target and the repository root before the same ' +
+    'containment test is re-applied, so a symbolic link that lives ' +
+    'inside the checkout and resolves outside it is refused too, before ' +
+    'it is read or executed; a dangling symlink -- one whose target does ' +
+    'not exist -- is not a refusal and is reported as the ordinary ' +
+    'missing-file outcome instead.'
 ];
 
 // The one signal that tells a REFUSAL apart from an unreadable/missing file.
@@ -122,6 +133,30 @@ function pathRefusedSentence(field) {
     '"unavailable" for a whole-run refusal because the reason set carries ' +
     'no dedicated value for a refusal. The refused path is untrusted ' +
     'input and is deliberately not echoed here.'
+  );
+}
+
+// A per-entry variant of pathRefusedSentence, above. The whole-run sentence
+// claims "No further file was read or executed for this run" -- true for
+// options.registry_path and options.fixture_root, both of which return
+// immediately, but FALSE for a refusal inside the per-entry loop: sibling
+// registry entries keep executing after this one degrades closed. This
+// variant makes the scope claim that IS true instead. Every member of
+// refusedFields is per-entry by construction (the two whole-run refusals
+// never reach it), so the stated_limits mapping below uses this variant
+// exclusively.
+function entryPathRefusedSentence(field) {
+  return (
+    'This is a per-entry refusal, not a whole-run one: the path supplied ' +
+    'in ' + field + ' resolves outside the repository root and was ' +
+    'refused unread/unexecuted by the root constraint, but the run did ' +
+    'NOT stop -- any sibling registry entries were still evaluated, and this ' +
+    'entry alone degraded closed to its existing finding for that gap. ' +
+    'That is a containment decision, not a missing or unreadable file, ' +
+    'and this sentence is what distinguishes the two -- skipped_reason ' +
+    'has no dedicated value for a refusal, which is why this sentence ' +
+    'exists. The refused path is untrusted input and is deliberately not ' +
+    'echoed here.'
   );
 }
 
@@ -166,17 +201,54 @@ function skipped(reason, statedLimits) {
 // escapes the root. Every caller reads inside a try/catch, so an absolute
 // path or a "../" traversal can never produce a pass, a partial result, or
 // an uncaught crash -- and for the registry's own script_path, never an
-// execution. The test is lexical: a symbolic link that lives inside the
-// checkout and points outside it is not detected, and that limit is stated
-// rather than implied. The refusal is TAGGED so the caller can report it as
-// a refusal rather than as a failed read; an untagged throw would be
-// indistinguishable from ENOENT in the output envelope. Mirrors
-// id-namespace-resolution.js's resolveWithinRoot.
+// execution. Two passes: first a cheap LEXICAL test (path.relative against
+// ".."); then, on success, a REALPATH test that resolves both the root and
+// the target with fs.realpathSync and re-applies the same containment test
+// to the resolved values, so a symbolic link that lives inside the checkout
+// and points outside it is refused too, before any read or execution. The
+// root is realpathed defensively (falling back to the lexical root if that
+// throws) so a checkout reached through a symlinked parent -- /tmp ->
+// /private/tmp on macOS, a symlinked worktree parent -- is never
+// self-refused. realpathSync throws ENOENT on a non-existent path, including
+// a dangling symlink's target: that is the ordinary missing-file case, not a
+// refusal, so it returns the lexical target unresolved and lets the
+// caller's existing missing-file handling degrade it exactly as before;
+// every OTHER errno (ELOOP, EACCES, ENOTDIR, ...) is rethrown UNTAGGED so
+// the caller degrades closed as a failed read, never as a containment
+// refusal and never as a crash. Both passes throw the SAME TAGGED
+// err.pathEscapesRoot on an escape, so the caller can report a refusal
+// distinctly from a failed read; an untagged throw would be
+// indistinguishable from ENOENT in the output envelope. Character-identical
+// in all four guarded validators (link-integrity.js,
+// cross-reference-integrity.js, gate-self-test.js,
+// id-namespace-resolution.js) by contract -- containment semantics must
+// stay uniform across them.
 function resolveWithinRoot(relPath) {
   const root = path.resolve(process.cwd());
   const target = path.resolve(root, String(relPath));
   const relative = path.relative(root, target);
   if (relative === '..' || relative.startsWith('..' + path.sep) || path.isAbsolute(relative)) {
+    const err = new Error('path escapes repository root');
+    err.pathEscapesRoot = true;
+    throw err;
+  }
+  let realRoot = root;
+  try {
+    realRoot = fs.realpathSync(root);
+  } catch (e) {
+    realRoot = root;
+  }
+  let realTarget;
+  try {
+    realTarget = fs.realpathSync(target);
+  } catch (e) {
+    if (e && e.code === 'ENOENT') {
+      return target;
+    }
+    throw e;
+  }
+  const realRelative = path.relative(realRoot, realTarget);
+  if (realRelative === '..' || realRelative.startsWith('..' + path.sep) || path.isAbsolute(realRelative)) {
     const err = new Error('path escapes repository root');
     err.pathEscapesRoot = true;
     throw err;
@@ -412,13 +484,35 @@ function execute(input) {
 
     const edgeFixtures = Array.isArray(entry.edge_fixtures) ? entry.edge_fixtures.slice().sort(cmpStr) : [];
     for (const edgeCase of edgeFixtures) {
-      // entry.edge_fixtures entries are registry data too; a refusal here is
-      // treated as not-present, matching the missing-file outcome exactly.
+      // entry.edge_fixtures entries are registry data too. A refusal here is
+      // DISCLOSED (unlike the join above at knownBadInputAbs, which is not
+      // one of the four guarded sites): the finding's path field carries the
+      // '(refused)' sentinel instead of the joined path, and the message
+      // never interpolates the escaping edgeCase string, matching the
+      // no-echo policy this file states and honors elsewhere (script_path,
+      // above). A refused edge fixture is otherwise treated the same as an
+      // absent one -- same finding code, same 'warn' severity -- so its
+      // absence from disk after the refusal is never separately reported.
       let edgeAbs = null;
+      let edgeRefused = false;
       try {
         edgeAbs = resolveWithinRoot(path.join(entryFixtureRoot, edgeCase));
       } catch (e) {
+        if (e && e.pathEscapesRoot) {
+          edgeRefused = true;
+          refusedFields.add("a registry entry's edge_fixtures entry");
+        }
         edgeAbs = null;
+      }
+      if (edgeRefused) {
+        findings.push(mkFinding(
+          '(refused)',
+          0,
+          'edge-fixture-absent',
+          'warn',
+          `check '${entry.slug}' names an edge fixture that resolves outside the repository root; it was refused and never read`
+        ));
+        continue;
       }
       if (!edgeAbs || !fs.existsSync(edgeAbs)) {
         findings.push(mkFinding(
@@ -461,9 +555,12 @@ function execute(input) {
   // Refusal sentences are collected in a Set keyed by field name and
   // appended in a fixed sorted order after the base limits, so a run's
   // stated_limits stays a pure function of the input regardless of entry
-  // iteration order (FR-8).
+  // iteration order (FR-8). Both whole-run refusals (options.registry_path,
+  // options.fixture_root) return early, above, before refusedFields is ever
+  // populated -- so every member reaching this point is per-entry by
+  // construction, and the per-entry sentence variant applies wholesale.
   const statedLimits = refusedFields.size
-    ? STATED_LIMITS.concat(Array.from(refusedFields).sort(cmpStr).map(pathRefusedSentence))
+    ? STATED_LIMITS.concat(Array.from(refusedFields).sort(cmpStr).map(entryPathRefusedSentence))
     : STATED_LIMITS;
 
   return {
