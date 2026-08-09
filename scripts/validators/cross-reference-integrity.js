@@ -659,29 +659,39 @@ module.exports = { manifest, execute };
 
 if (require.main === module) {
   const arg = process.argv[2];
-  let raw;
+  // Exit via process.exitCode, never process.exit(): an immediate exit can
+  // discard asynchronously buffered stdout when it is a pipe, truncating the
+  // one JSON envelope a harness reads. Setting exitCode lets the process end
+  // naturally after the stream drains.
+  let raw = null;
   try {
     raw = (!arg || arg === '-') ? fs.readFileSync(0, 'utf8') : fs.readFileSync(arg, 'utf8');
   } catch (e) {
     process.stderr.write('cross-reference-integrity: unable to read input\n');
-    process.exit(3);
+    process.exitCode = 3;
   }
 
-  let parsedInput;
-  try {
-    parsedInput = JSON.parse(raw);
-  } catch (e) {
-    process.stderr.write('cross-reference-integrity: malformed JSON input\n');
-    process.exit(3);
-  }
+  if (raw !== null) {
+    let parsedInput;
+    let parsed = false;
+    try {
+      parsedInput = JSON.parse(raw);
+      parsed = true;
+    } catch (e) {
+      process.stderr.write('cross-reference-integrity: malformed JSON input\n');
+      process.exitCode = 3;
+    }
 
-  const output = execute(parsedInput);
-  process.stdout.write(JSON.stringify(output, null, 2) + '\n');
+    if (parsed) {
+      const output = execute(parsedInput);
+      process.stdout.write(JSON.stringify(output, null, 2) + '\n');
 
-  const EXIT_CODES = { pass: 0, warn: 10, fail: 20 };
-  let exitCode = 30;
-  if (output.status !== 'skipped') {
-    exitCode = Object.prototype.hasOwnProperty.call(EXIT_CODES, output.verdict) ? EXIT_CODES[output.verdict] : 20;
+      const EXIT_CODES = { pass: 0, warn: 10, fail: 20 };
+      let exitCode = 30;
+      if (output.status !== 'skipped') {
+        exitCode = Object.prototype.hasOwnProperty.call(EXIT_CODES, output.verdict) ? EXIT_CODES[output.verdict] : 20;
+      }
+      process.exitCode = exitCode;
+    }
   }
-  process.exit(exitCode);
 }
