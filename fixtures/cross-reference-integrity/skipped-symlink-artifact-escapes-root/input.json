@@ -1,0 +1,5 @@
+{
+  "check": "cross-reference-integrity",
+  "artifact_path": "fixtures/cross-reference-integrity/skipped-symlink-artifact-escapes-root/corpus/outside-root",
+  "options": {}
+}

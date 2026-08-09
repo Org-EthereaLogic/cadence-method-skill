@@ -1,0 +1,14 @@
+{
+  "schema": "cadence.validator-registry.v1",
+  "checks": [
+    {
+      "slug": "stub-good-check",
+      "script_path": "fixtures/gate-self-test/fail-entry-edge-fixture-escapes-root/corpus/stub-good-check.js",
+      "fixture_root": "fixtures/gate-self-test/fail-entry-edge-fixture-escapes-root/corpus/fixtures/stub-good-check",
+      "known_bad_case": "known-bad",
+      "verdict": "fail",
+      "finding_code": "stub-good-finding",
+      "edge_fixtures": ["../../../../../../../outside-root-edge-case"]
+    }
+  ]
+}

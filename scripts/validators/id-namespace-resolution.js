@@ -311,9 +311,14 @@ const BASE_STATED_LIMITS = [
   'Every path in the input envelope is resolved beneath the repository ' +
     'root and refused unread when it escapes it, so an absolute path or a ' +
     '"../" traversal in the envelope degrades the run closed to skipped: ' +
-    'unavailable rather than reading a file outside the checkout; that ' +
-    'test is lexical, so a symbolic link that lives inside the checkout ' +
-    'and points outside it is not detected.'
+    'unavailable rather than reading a file outside the checkout; the ' +
+    'containment test also resolves symbolic links: fs.realpathSync is ' +
+    'applied to both the target and the repository root before the same ' +
+    'containment test is re-applied, so a symbolic link that lives inside ' +
+    'the checkout and resolves outside it is refused too, before it is ' +
+    'read; a dangling symlink -- one whose target does not exist -- is ' +
+    'not a refusal and is reported as the ordinary missing-file outcome ' +
+    'instead.'
 ];
 
 // The one signal that tells a REFUSAL apart from an unreadable file. Both
@@ -460,19 +465,55 @@ function skipped(reason, statedLimits) {
 // partial result, or an uncaught crash. This matters beyond file access:
 // finding messages echo definition text read from these files, so an
 // unconstrained resolve is an information-disclosure path out of the
-// checkout, not merely a read of the wrong file. The test is lexical, the
-// same discipline link-integrity.js applies to an escaping link target: a
-// symbolic link inside the checkout that points outside it is not detected,
-// and that limit is stated rather than implied. The refusal is TAGGED so the
-// caller can report it as a refusal rather than as a failed read; an
+// checkout, not merely a read of the wrong file. Two passes: first a cheap
+// LEXICAL test (path.relative against ".."); then, on success, a REALPATH
+// test that resolves both the root and the target with fs.realpathSync and
+// re-applies the same containment test to the resolved values, so a
+// symbolic link that lives inside the checkout and points outside it is
+// refused too, before any read or execution. The root is realpathed
+// defensively (falling back to the lexical root if that throws) so a
+// checkout reached through a symlinked parent -- /tmp -> /private/tmp on
+// macOS, a symlinked worktree parent -- is never self-refused. realpathSync
+// throws ENOENT on a non-existent path, including a dangling symlink's
+// target: that is the ordinary missing-file case, not a refusal, so it
+// returns the lexical target unresolved and lets the caller's existing
+// missing-file handling degrade it exactly as before; every OTHER errno
+// (ELOOP, EACCES, ENOTDIR, ...) is rethrown UNTAGGED so the caller degrades
+// closed as a failed read, never as a containment refusal and never as a
+// crash. Both passes throw the SAME TAGGED err.pathEscapesRoot on an escape,
+// so the caller can report a refusal distinctly from a failed read; an
 // untagged throw would be indistinguishable from ENOENT in the output
 // envelope, which is what made the earlier path-escape fixtures unable to
-// pin the constraint they were named for.
+// pin the constraint they were named for. Character-identical in all four
+// guarded validators (link-integrity.js, cross-reference-integrity.js,
+// gate-self-test.js, id-namespace-resolution.js) by contract -- containment
+// semantics must stay uniform across them.
 function resolveWithinRoot(relPath) {
   const root = path.resolve(process.cwd());
   const target = path.resolve(root, String(relPath));
   const relative = path.relative(root, target);
   if (relative === '..' || relative.startsWith('..' + path.sep) || path.isAbsolute(relative)) {
+    const err = new Error('path escapes repository root');
+    err.pathEscapesRoot = true;
+    throw err;
+  }
+  let realRoot = root;
+  try {
+    realRoot = fs.realpathSync(root);
+  } catch (e) {
+    realRoot = root;
+  }
+  let realTarget;
+  try {
+    realTarget = fs.realpathSync(target);
+  } catch (e) {
+    if (e && e.code === 'ENOENT') {
+      return target;
+    }
+    throw e;
+  }
+  const realRelative = path.relative(realRoot, realTarget);
+  if (realRelative === '..' || realRelative.startsWith('..' + path.sep) || path.isAbsolute(realRelative)) {
     const err = new Error('path escapes repository root');
     err.pathEscapesRoot = true;
     throw err;
