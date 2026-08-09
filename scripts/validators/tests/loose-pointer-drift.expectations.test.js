@@ -130,6 +130,8 @@ const EXPECT = {
     ran('warn', [3], 0, 'rule: a group whose whole content IS the reference stays transparent'),
   'pass-token-two-cells-away-not-a-pointer':
     ran('pass', [], 1, 'rule: at most one unescaped table-cell boundary'),
+  'pass-escaped-backslash-does-not-escape-the-pipe':
+    ran('pass', [], 1, 'rule: a pipe is escaped only after an ODD run of backslashes'),
   'warn-wide-aligned-table-row-binds':
     ran('warn', [5], 0, 'rule: a wide ALIGNED row still binds -- no character budget'),
   'warn-parenthesised-aside-in-separator-is-a-pointer':

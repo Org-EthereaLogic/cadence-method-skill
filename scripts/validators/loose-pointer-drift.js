@@ -720,6 +720,27 @@ function scanLineEntities(line, matchCandidates) {
   return entities;
 }
 
+// How many LIVE table-cell delimiters does this text carry? A pipe is escaped
+// in GFM iff it is preceded by an ODD run of backslashes, so parity is what
+// decides it, not the single preceding character: "\|" is an escaped pipe,
+// but "\\|" is an escaped BACKSLASH followed by a live delimiter. A
+// (?<!\\)\| lookbehind gets the second case wrong and undercounts, which let
+// a pair two cells apart through the bound below.
+function unescapedPipeCount(text) {
+  let count = 0;
+  let backslashes = 0;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '\\') {
+      backslashes += 1;
+      continue;
+    }
+    if (ch === '|' && backslashes % 2 === 0) count += 1;
+    backslashes = 0;
+  }
+  return count;
+}
+
 // Is the raw text between two adjacent entities a POINTER-FORM separator?
 // Three structural conditions, each bounding a quantity that means something:
 //
@@ -742,7 +763,7 @@ function scanLineEntities(line, matchCandidates) {
 // fixpoint.
 function separatorIsPointerForm(line, a, b) {
   const sep = line.slice(a.end, b.start);
-  if (sep.split(/(?<!\\)\|/).length - 1 > 1) return false;
+  if (unescapedPipeCount(sep) > 1) return false;
   let s = sep;
   for (;;) {
     const next = s.replace(/\([^()]*\)/g, '');

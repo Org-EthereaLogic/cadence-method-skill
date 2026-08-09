@@ -102,6 +102,7 @@
       "edge_fixtures": [
         "pass-artifact-carries-no-pointer",
         "pass-duplicate-declared-path-conflicting-versions-refused",
+        "pass-escaped-backslash-does-not-escape-the-pipe",
         "pass-exact-path-outranks-other-document-basename",
         "pass-manifest-asserts-unpointed-document",
         "pass-pointer-inside-fenced-block-excluded",
