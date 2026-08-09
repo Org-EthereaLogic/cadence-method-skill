@@ -1,0 +1,6 @@
+{
+  "check": "loose-pointer-drift",
+  "artifact_path": "fixtures/loose-pointer-drift/pass-prose-between-reference-and-token-not-a-pointer/corpus/artifact.md",
+  "manifest_path": "fixtures/loose-pointer-drift/pass-prose-between-reference-and-token-not-a-pointer/corpus/manifest.json",
+  "options": { "version_authority": "documents[].current_version" }
+}

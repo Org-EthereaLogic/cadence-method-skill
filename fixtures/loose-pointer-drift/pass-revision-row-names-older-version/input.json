@@ -1,0 +1,6 @@
+{
+  "check": "loose-pointer-drift",
+  "artifact_path": "fixtures/loose-pointer-drift/pass-revision-row-names-older-version/corpus/artifact.md",
+  "manifest_path": "fixtures/loose-pointer-drift/pass-revision-row-names-older-version/corpus/manifest.json",
+  "options": { "version_authority": "documents[].current_version" }
+}

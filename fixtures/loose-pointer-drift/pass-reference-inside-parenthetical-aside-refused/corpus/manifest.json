@@ -1,0 +1,26 @@
+{
+  "document_set": {
+    "selection_rationale": "Fixture corpus for the loose-pointer-drift validator.",
+    "documents": [
+      {
+        "path": "docs/design/COMPANION_ONE.md",
+        "type": "companion",
+        "upstream_dependencies": [],
+        "selection_rationale": "Fixture companion document.",
+        "current_version": "v2.3"
+      },
+      {
+        "path": "docs/design/COMPANION_TWO.md",
+        "type": "companion",
+        "upstream_dependencies": [],
+        "selection_rationale": "Fixture companion document.",
+        "current_version": "v8.8"
+      }
+    ]
+  },
+  "authority_document": {
+    "path": "",
+    "type": "",
+    "current_version": ""
+  }
+}
