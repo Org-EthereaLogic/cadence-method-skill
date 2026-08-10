@@ -383,6 +383,17 @@ function execute(input) {
     return skipped('not-applicable');
   }
 
+  // --- governed_roots is a required input for the bidirectional join: a manifest
+  // declaring documents but no governed tree to reconcile them against cannot be
+  // judged, so the check degrades closed (a missing required key skips, never
+  // guesses -- spec §2). This is placed AFTER the manifest read and the empty
+  // document-set skip: an unreadable manifest is still "unavailable" with its own
+  // refusal disclosure, and an empty document set is still "not-applicable",
+  // regardless of governed_roots. ---
+  if (governedRoots.length === 0) {
+    return skipped('unavailable');
+  }
+
   const manifestRelPath = normalizePath(manifestPathOpt);
   const findings = [];
 
@@ -467,30 +478,40 @@ function execute(input) {
     .filter((p) => !derivedRenderTargets.has(p))
     .sort(cmpStr);
 
-  // --- Direction 1: every governed artifact has a manifest row (exact, then basename). ---
+  // --- The shared exact-then-basename join, applied SYMMETRICALLY in both
+  // directions so they can never disagree. An artifact or a row is "claimed"
+  // when its exact repository-root-relative path matches on the other side.
+  // Among the UNCLAIMED remainder on each side, a basename joins only when
+  // EXACTLY ONE unclaimed artifact AND EXACTLY ONE unclaimed row carry it; a
+  // basename shared by two rows, or by two artifacts, is refused rather than
+  // resolved by manifest order (a refused join counts as no row). An
+  // exact-matched artifact is never a basename-rescue candidate, so a missing
+  // row whose basename merely coincides with an already-registered file is not
+  // silently accepted. ---
   const rowPathSet = new Set(manifestEntries.map((e) => e.path));
-  const artifactSet = new Set(governedArtifacts);
-  // Rows still available for a basename join: those whose exact path is not
-  // itself an on-tree governed artifact (an exact-matched row is spoken for).
-  const availableRows = manifestEntries.filter((e) => !artifactSet.has(e.path));
-  const availableRowBasenameCount = new Map();
-  for (const e of availableRows) {
-    availableRowBasenameCount.set(e.basename, (availableRowBasenameCount.get(e.basename) || 0) + 1);
-  }
-  const unmatchedArtifacts = governedArtifacts.filter((a) => !rowPathSet.has(a));
-  const unmatchedArtifactBasenameCount = new Map();
-  for (const a of unmatchedArtifacts) {
+  const artifactPathSet = new Set(governedArtifacts);
+  const unclaimedArtifacts = governedArtifacts.filter((a) => !rowPathSet.has(a));
+  const unclaimedRows = manifestEntries.filter((e) => !artifactPathSet.has(e.path));
+  const unclaimedArtifactByBasename = new Map();
+  for (const a of unclaimedArtifacts) {
     const bn = path.posix.basename(a);
-    unmatchedArtifactBasenameCount.set(bn, (unmatchedArtifactBasenameCount.get(bn) || 0) + 1);
+    unclaimedArtifactByBasename.set(bn, (unclaimedArtifactByBasename.get(bn) || 0) + 1);
   }
-  for (const a of unmatchedArtifacts) {
+  const unclaimedRowByBasename = new Map();
+  for (const e of unclaimedRows) {
+    unclaimedRowByBasename.set(e.basename, (unclaimedRowByBasename.get(e.basename) || 0) + 1);
+  }
+  function basenameJoinsUniquely(bn) {
+    return unclaimedArtifactByBasename.get(bn) === 1 && unclaimedRowByBasename.get(bn) === 1;
+  }
+
+  // --- Direction 1: every governed artifact has a manifest row (same join). ---
+  for (const a of unclaimedArtifacts) {
     const bn = path.posix.basename(a);
-    const rows = availableRowBasenameCount.get(bn) || 0;
-    const arts = unmatchedArtifactBasenameCount.get(bn) || 0;
-    if (rows === 1 && arts === 1) {
+    if (basenameJoinsUniquely(bn)) {
       continue; // unique basename join (e.g. a zone move)
     }
-    if (rows === 0) {
+    if ((unclaimedRowByBasename.get(bn) || 0) === 0) {
       findings.push(mkFinding(
         a, 0, 'governed-artifact-unregistered', 'fail',
         `governed artifact '${a}' has no manifest row (no exact-path or basename match in document_set.documents[] or authority_document)`
@@ -503,32 +524,34 @@ function execute(input) {
     }
   }
 
-  // --- Direction 2: every manifest row names a file that exists (same join). ---
-  const artifactBasenames = new Set(governedArtifacts.map((a) => path.posix.basename(a)));
+  // --- Direction 2: every manifest row names a FILE that exists (same join). A
+  // row whose exact path resolves to a directory names no document and fails
+  // like a missing file; a zone move is rescued only by a unique basename join. ---
   let rowExistenceRefused = null;
   const seenRowPaths = new Set();
   for (const e of manifestEntries) {
     if (seenRowPaths.has(e.path)) continue;
     seenRowPaths.add(e.path);
-    let exists = false;
+    let existsAsFile = false;
     try {
-      exists = fs.existsSync(resolveWithinRoot(e.path));
+      existsAsFile = fs.statSync(resolveWithinRoot(e.path)).isFile();
     } catch (err) {
       if (err && err.pathEscapesRoot) {
         rowExistenceRefused = err;
         break;
       }
-      exists = false;
+      existsAsFile = false;
     }
-    if (!exists && artifactBasenames.has(e.basename)) {
-      exists = true; // a zone move: the file exists under a different zone directory
+    if (existsAsFile) {
+      continue; // the row's own path is a regular file
     }
-    if (!exists) {
-      findings.push(mkFinding(
-        e.path, 0, 'manifest-row-file-missing', 'fail',
-        `manifest row names '${e.path}', which names no existing file (no exact path on disk and no basename match among governed artifacts)`
-      ));
+    if (basenameJoinsUniquely(e.basename)) {
+      continue; // a zone move: the file exists under a different zone directory
     }
+    findings.push(mkFinding(
+      e.path, 0, 'manifest-row-file-missing', 'fail',
+      `manifest row names '${e.path}', which names no existing file (no exact-path regular file on disk and no unambiguous basename match among governed artifacts)`
+    ));
   }
   if (rowExistenceRefused) {
     return skippedForFailedRead(rowExistenceRefused, 'a manifest document row path');

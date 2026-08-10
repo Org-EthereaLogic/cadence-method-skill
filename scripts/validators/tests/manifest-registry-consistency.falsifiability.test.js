@@ -40,9 +40,19 @@ function check(ok, name, detail) {
   }
 }
 
+// Never let a validator crash or an empty stdout abort the harness with a raw
+// stack trace: report a named failure carrying the exit code and stderr, and
+// return null so the caller can degrade the dependent assertions.
 function run(caseName) {
   const r = spawnSync(process.execPath, [SCRIPT, path.join(ROOT, caseName, 'input.json')], { cwd: process.cwd(), encoding: 'utf8' });
-  return { env: JSON.parse(r.stdout), exit: r.status };
+  let env;
+  try {
+    env = JSON.parse(r.stdout);
+  } catch (e) {
+    check(false, caseName + ' produced a parseable output envelope', 'exit=' + r.status + ' stderr=' + String(r.stderr || '').trim());
+    return null;
+  }
+  return { env: env, exit: r.status };
 }
 
 // Enumerate the governed corpus files (everything under corpus/ except manifest.json).
@@ -65,21 +75,25 @@ function documentRowPaths(caseName) {
 
 // --- Red half: fail, for the right reason, naming the orphan. ---
 const red = run(RED);
-check(red.env.verdict === 'fail', 'red half is fail', 'verdict=' + red.env.verdict);
-check(red.exit === 20, 'red half exits 20', 'exit=' + red.exit);
-const orphanFindings = (red.env.findings || []).filter((f) => f.code === 'governed-artifact-unregistered');
-check(orphanFindings.length === 1, 'red half has exactly one governed-artifact-unregistered finding', 'count=' + orphanFindings.length);
-check(
-  orphanFindings.length === 1 && orphanFindings[0].path.split('/').pop() === ORPHAN,
-  'red half names the orphaned artifact (' + ORPHAN + ')',
-  orphanFindings.length ? 'path=' + orphanFindings[0].path : 'no finding'
-);
+if (red) {
+  check(red.env.verdict === 'fail', 'red half is fail', 'verdict=' + red.env.verdict);
+  check(red.exit === 20, 'red half exits 20', 'exit=' + red.exit);
+  const orphanFindings = (red.env.findings || []).filter((f) => f.code === 'governed-artifact-unregistered');
+  check(orphanFindings.length === 1, 'red half has exactly one governed-artifact-unregistered finding', 'count=' + orphanFindings.length);
+  check(
+    orphanFindings.length === 1 && orphanFindings[0].path.split('/').pop() === ORPHAN,
+    'red half names the orphaned artifact (' + ORPHAN + ')',
+    orphanFindings.length ? 'path=' + orphanFindings[0].path : 'no finding'
+  );
+}
 
 // --- Green half: pass, clean. ---
 const green = run(GREEN);
-check(green.env.verdict === 'pass', 'green half is pass', 'verdict=' + green.env.verdict);
-check(green.exit === 0, 'green half exits 0', 'exit=' + green.exit);
-check((green.env.findings || []).length === 0, 'green half has no findings', 'count=' + (green.env.findings || []).length);
+if (green) {
+  check(green.env.verdict === 'pass', 'green half is pass', 'verdict=' + green.env.verdict);
+  check(green.exit === 0, 'green half exits 0', 'exit=' + green.exit);
+  check((green.env.findings || []).length === 0, 'green half has no findings', 'count=' + (green.env.findings || []).length);
+}
 
 // --- The pair differs by exactly the one added row. ---
 const redFiles = corpusFiles(RED);

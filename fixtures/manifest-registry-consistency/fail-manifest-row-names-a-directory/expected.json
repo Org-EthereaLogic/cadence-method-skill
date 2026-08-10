@@ -5,11 +5,11 @@
   "verdict": "fail",
   "findings": [
     {
-      "path": "fixtures/manifest-registry-consistency/fail-manifest-row-file-missing/corpus/cadence/draft/companion-two.md",
+      "path": "fixtures/manifest-registry-consistency/fail-manifest-row-names-a-directory/corpus/cadence/draft/notes",
       "line": 0,
       "code": "manifest-row-file-missing",
       "severity": "fail",
-      "message": "manifest row names 'fixtures/manifest-registry-consistency/fail-manifest-row-file-missing/corpus/cadence/draft/companion-two.md', which names no existing file (no exact-path regular file on disk and no unambiguous basename match among governed artifacts)"
+      "message": "manifest row names 'fixtures/manifest-registry-consistency/fail-manifest-row-names-a-directory/corpus/cadence/draft/notes', which names no existing file (no exact-path regular file on disk and no unambiguous basename match among governed artifacts)"
     }
   ],
   "stated_limits": [

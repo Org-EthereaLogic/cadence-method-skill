@@ -17,6 +17,13 @@
       "code": "governed-artifact-unregistered",
       "severity": "fail",
       "message": "governed artifact 'fixtures/manifest-registry-consistency/fail-ambiguous-shared-basename/corpus/docs/reference/glossary.md' has no unambiguous manifest row: its basename 'glossary.md' matches more than one row or more than one governed artifact, and the ambiguous join is refused rather than resolved by manifest order"
+    },
+    {
+      "path": "glossary.md",
+      "line": 0,
+      "code": "manifest-row-file-missing",
+      "severity": "fail",
+      "message": "manifest row names 'glossary.md', which names no existing file (no exact-path regular file on disk and no unambiguous basename match among governed artifacts)"
     }
   ],
   "stated_limits": [

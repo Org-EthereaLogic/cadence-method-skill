@@ -1,0 +1,8 @@
+{
+  "check": "manifest-registry-consistency",
+  "manifest_path": "fixtures/manifest-registry-consistency/skipped-governed-roots-absent/corpus/manifest.json",
+  "project_root": ".",
+  "options": {
+    "evidence_root": "artifacts/"
+  }
+}

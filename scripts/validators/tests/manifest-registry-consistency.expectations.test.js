@@ -59,15 +59,25 @@ const EXPECT = {
   'fail-governed-artifact-orphaned': ran('fail', ['governed-artifact-unregistered'], 'AC'),
   'pass-orphan-row-added': ran('pass', [], 'AC'),
   'pass-zone-move-basename-join': ran('pass', [], 'AC'),
-  'fail-ambiguous-shared-basename': ran('fail', ['governed-artifact-unregistered', 'governed-artifact-unregistered'], 'AC'),
+  // The ambiguous basename is refused in BOTH directions: two artifacts have no
+  // unambiguous row (orphaned), and the one basename-only row names no unambiguous
+  // file (missing).
+  'fail-ambiguous-shared-basename': ran('fail', ['governed-artifact-unregistered', 'governed-artifact-unregistered', 'manifest-row-file-missing'], 'AC'),
   'pass-evidence-root-file-needs-no-row': ran('pass', [], 'AC'),
   'pass-derived-render-needs-no-row': ran('pass', [], 'AC'),
   'fail-manifest-row-file-missing': ran('fail', ['manifest-row-file-missing'], 'rule'),
   'fail-selection-rationale-absent': ran('fail', ['selection-rationale-absent'], 'AC'),
+  // A row whose exact path is a directory names no document (spec §4: "names a file").
+  'fail-manifest-row-names-a-directory': ran('fail', ['manifest-row-file-missing'], 'rule'),
+  // A missing row whose basename coincides with an already-registered artifact is
+  // NOT rescued (the claimed artifact is not a basename-rescue candidate).
+  'fail-row-basename-collides-with-matched-artifact': ran('fail', ['manifest-row-file-missing'], 'rule'),
   'skip-no-document-set': skip('not-applicable', false, 'AC'),
   'skipped-manifest-unparseable': skip('unavailable', false, 'AC'),
   'skipped-manifest-path-escapes-root': skip('unavailable', true, 'AC'),
-  'skipped-symlink-manifest-escapes-root': skip('unavailable', true, 'AC')
+  'skipped-symlink-manifest-escapes-root': skip('unavailable', true, 'AC'),
+  // governed_roots is a required input; absent -> degrade closed, never a guess (spec §2).
+  'skipped-governed-roots-absent': skip('unavailable', false, 'rule')
 };
 
 const EXIT = { pass: 0, warn: 10, fail: 20 };

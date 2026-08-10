@@ -1,17 +1,9 @@
 {
   "check": "manifest-registry-consistency",
-  "status": "ran",
-  "skipped_reason": null,
-  "verdict": "fail",
-  "findings": [
-    {
-      "path": "fixtures/manifest-registry-consistency/fail-manifest-row-file-missing/corpus/cadence/draft/companion-two.md",
-      "line": 0,
-      "code": "manifest-row-file-missing",
-      "severity": "fail",
-      "message": "manifest row names 'fixtures/manifest-registry-consistency/fail-manifest-row-file-missing/corpus/cadence/draft/companion-two.md', which names no existing file (no exact-path regular file on disk and no unambiguous basename match among governed artifacts)"
-    }
-  ],
+  "status": "skipped",
+  "skipped_reason": "unavailable",
+  "verdict": null,
+  "findings": [],
   "stated_limits": [
     "This check verifies manifest/registry consistency by PATH only: it confirms that every governed artifact under options.governed_roots is registered and that every manifest row names a file that exists, but it never opens, parses, or validates the CONTENT of any governed artifact or of the documents the manifest names (FR-17).",
     "A manifest row is joined to a governed artifact first by an exact repository-root-relative path match and, failing that, by the basename of the row's path (the filename component, invariant across zone directories). A basename shared by two distinct rows, or by two governed artifacts with no exact match, is REFUSED rather than resolved by manifest order -- a refused join counts as no row and the artifact is reported unregistered. A pure zone move (same basename, different zone directory) therefore stays a pass.",
