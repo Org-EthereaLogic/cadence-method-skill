@@ -1,0 +1,24 @@
+{
+  "document_set": {
+    "selection_rationale": "Documents selected for the fixture governed project.",
+    "documents": [
+      {
+        "path": "fixtures/manifest-registry-consistency/pass-derived-render-needs-no-row/corpus/cadence/draft/solution-design.md",
+        "type": "companion",
+        "upstream_dependencies": [
+          "fixtures/manifest-registry-consistency/pass-derived-render-needs-no-row/corpus/cadence/draft/constitution.md"
+        ],
+        "selection_rationale": "The source artifact; its render is derived.",
+        "current_version": "v1.0",
+        "derived_render": {
+          "path": "fixtures/manifest-registry-consistency/pass-derived-render-needs-no-row/corpus/cadence/draft/solution-design.html"
+        }
+      }
+    ]
+  },
+  "authority_document": {
+    "path": "fixtures/manifest-registry-consistency/pass-derived-render-needs-no-row/corpus/cadence/draft/constitution.md",
+    "type": "authority",
+    "current_version": "v1.0"
+  }
+}

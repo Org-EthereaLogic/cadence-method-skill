@@ -1,0 +1,30 @@
+{
+  "document_set": {
+    "selection_rationale": "Documents selected for the fixture governed project.",
+    "documents": [
+      {
+        "path": "fixtures/manifest-registry-consistency/fail-manifest-row-names-a-directory/corpus/cadence/draft/notes/keep.md",
+        "type": "companion",
+        "upstream_dependencies": [
+          "fixtures/manifest-registry-consistency/fail-manifest-row-names-a-directory/corpus/cadence/draft/constitution.md"
+        ],
+        "selection_rationale": "The real document inside notes/.",
+        "current_version": "v1.0"
+      },
+      {
+        "path": "fixtures/manifest-registry-consistency/fail-manifest-row-names-a-directory/corpus/cadence/draft/notes",
+        "type": "companion",
+        "upstream_dependencies": [
+          "fixtures/manifest-registry-consistency/fail-manifest-row-names-a-directory/corpus/cadence/draft/constitution.md"
+        ],
+        "selection_rationale": "A row that names a directory, not a file.",
+        "current_version": "v1.0"
+      }
+    ]
+  },
+  "authority_document": {
+    "path": "fixtures/manifest-registry-consistency/fail-manifest-row-names-a-directory/corpus/cadence/draft/constitution.md",
+    "type": "authority",
+    "current_version": "v1.0"
+  }
+}

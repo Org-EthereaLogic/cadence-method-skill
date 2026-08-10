@@ -1,0 +1,39 @@
+{
+  "document_set": {
+    "selection_rationale": "Documents selected for the fixture governed project.",
+    "documents": [
+      {
+        "path": "fixtures/manifest-registry-consistency/pass-orphan-row-added/corpus/cadence/draft/companion-one.md",
+        "type": "companion",
+        "upstream_dependencies": [
+          "fixtures/manifest-registry-consistency/pass-orphan-row-added/corpus/cadence/draft/constitution.md"
+        ],
+        "selection_rationale": "Companion one supports the constitution.",
+        "current_version": "v1.0"
+      },
+      {
+        "path": "fixtures/manifest-registry-consistency/pass-orphan-row-added/corpus/cadence/draft/companion-two.md",
+        "type": "companion",
+        "upstream_dependencies": [
+          "fixtures/manifest-registry-consistency/pass-orphan-row-added/corpus/cadence/draft/constitution.md"
+        ],
+        "selection_rationale": "Companion two supports the constitution.",
+        "current_version": "v1.0"
+      },
+      {
+        "path": "fixtures/manifest-registry-consistency/pass-orphan-row-added/corpus/cadence/draft/rogue.md",
+        "type": "companion",
+        "upstream_dependencies": [
+          "fixtures/manifest-registry-consistency/pass-orphan-row-added/corpus/cadence/draft/constitution.md"
+        ],
+        "selection_rationale": "Formerly orphaned, now registered.",
+        "current_version": "v1.0"
+      }
+    ]
+  },
+  "authority_document": {
+    "path": "fixtures/manifest-registry-consistency/pass-orphan-row-added/corpus/cadence/draft/constitution.md",
+    "type": "authority",
+    "current_version": "v1.0"
+  }
+}

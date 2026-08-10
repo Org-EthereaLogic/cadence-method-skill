@@ -1,0 +1,11 @@
+{
+  "check": "manifest-registry-consistency",
+  "manifest_path": "fixtures/manifest-registry-consistency/fail-two-authority-documents/corpus/manifest.json",
+  "project_root": ".",
+  "options": {
+    "governed_roots": [
+      "fixtures/manifest-registry-consistency/fail-two-authority-documents/corpus/cadence/draft"
+    ],
+    "evidence_root": "artifacts/"
+  }
+}

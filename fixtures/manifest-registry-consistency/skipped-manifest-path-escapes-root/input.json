@@ -1,0 +1,9 @@
+{
+  "check": "manifest-registry-consistency",
+  "manifest_path": "../outside-root-manifest.json",
+  "project_root": ".",
+  "options": {
+    "governed_roots": [],
+    "evidence_root": "artifacts/"
+  }
+}
