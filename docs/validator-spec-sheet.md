@@ -489,7 +489,7 @@ Verifies the project manifest against the governed tree (method §3.2, Appendix 
 | --- | --- | --- |
 | `pass` | Every governed artifact under `options.governed_roots` has a manifest row (the identity join above); every manifest row names a file that exists (same join); the manifest declares **exactly one** authority document; `document_set.selection_rationale` is present and non-empty. | `0` |
 | `warn` | `document_set.selection_rationale` is present as a key but its value is empty while `document_set.documents` is non-empty, or a row's own optional `selection_rationale` is present but empty. The structure is there and the reason for it is not. | `10` |
-| `fail` | Zero or two authority-document designations (AC-1.3); a governed artifact with no manifest row, including a refused ambiguous basename join (above); a manifest row naming a file that does not exist. | `20` |
+| `fail` | Zero or two authority-document designations (AC-1.3); a governed artifact with no manifest row, including a refused ambiguous basename join (above); a manifest row naming a file that does not exist; a required `document_set.selection_rationale` absent entirely (the key is missing, not merely empty — contrast the `warn` row) while `document_set.documents` is non-empty. | `20` |
 | `skipped: not-applicable` | The project declares no document set yet — an initialized scaffold before its first artifact (`document_set.documents` is empty). | `30` |
 | `skipped: unavailable` | The manifest cannot be read or parsed. | `30` |
 
@@ -779,8 +779,8 @@ awk -F'|' '
 # (e) No UNSCOPED universal over the loose-pointer-drift fixtures in the
 #     manifest-registry-consistency subsection. A prose sentence there that
 #     pairs a bare "every"/"all" with "fixture" but carries no scoping token —
-#     a digit, "document_set", or a named exception fixture (e.g.
-#     "warn-custom-...") — overclaims how the shipped corpus is shaped, the way
+#     a fixture-census count (e.g. "37 of 39"/"37 fixtures"), "document_set", or a
+#     named exception fixture ("warn-custom-...") — overclaims how the shipped corpus is shaped, the way
 #     the authority_document-omission clause once did with "every shipped
 #     fixture". Sentences are split on ". "; table rows (leading "|") are
 #     skipped so a fixture path like ".../pass-one-authority-all-rows/" is not
@@ -795,7 +795,7 @@ awk '
       t = s[i]
       if (t ~ /fixture/ &&
           (t ~ /(^| )every( |$)/ || t ~ /(^| )all( |$)/) &&
-          t !~ /[0-9]/ && t !~ /document_set/ && t !~ /warn-custom/)
+          t !~ /[0-9]+ +(of|fixtures?|corpus|manifests?|files?)/ && t !~ /document_set/ && t !~ /warn-custom/)
         print "UNSCOPED-UNIVERSAL manifest-registry-consistency: " s[i]
     }
   }
