@@ -141,6 +141,31 @@
         "warn-two-references-two-tokens-both-reported",
         "warn-wide-aligned-table-row-binds"
       ]
+    },
+    {
+      "slug": "manifest-registry-consistency",
+      "script_path": "scripts/validators/manifest-registry-consistency.js",
+      "fixture_root": "fixtures/manifest-registry-consistency/",
+      "known_bad_case": "fail-two-authority-documents",
+      "verdict": "fail",
+      "finding_code": "authority-document-count-invalid",
+      "edge_fixtures": [
+        "fail-ambiguous-shared-basename",
+        "fail-governed-artifact-orphaned",
+        "fail-manifest-row-file-missing",
+        "fail-selection-rationale-absent",
+        "fail-zero-authority-documents",
+        "pass-derived-render-needs-no-row",
+        "pass-evidence-root-file-needs-no-row",
+        "pass-one-authority-all-rows",
+        "pass-orphan-row-added",
+        "pass-zone-move-basename-join",
+        "skip-no-document-set",
+        "skipped-manifest-path-escapes-root",
+        "skipped-manifest-unparseable",
+        "skipped-symlink-manifest-escapes-root",
+        "warn-empty-selection-rationale"
+      ]
     }
   ]
 }

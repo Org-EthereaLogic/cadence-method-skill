@@ -1,0 +1,9 @@
+{
+  "check": "manifest-registry-consistency",
+  "manifest_path": "fixtures/manifest-registry-consistency/skipped-symlink-manifest-escapes-root/corpus/outside-root",
+  "project_root": ".",
+  "options": {
+    "governed_roots": [],
+    "evidence_root": "artifacts/"
+  }
+}

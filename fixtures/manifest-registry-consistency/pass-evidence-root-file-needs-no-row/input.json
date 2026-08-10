@@ -1,0 +1,11 @@
+{
+  "check": "manifest-registry-consistency",
+  "manifest_path": "fixtures/manifest-registry-consistency/pass-evidence-root-file-needs-no-row/corpus/manifest.json",
+  "project_root": ".",
+  "options": {
+    "governed_roots": [
+      "fixtures/manifest-registry-consistency/pass-evidence-root-file-needs-no-row/corpus/cadence/draft"
+    ],
+    "evidence_root": "fixtures/manifest-registry-consistency/pass-evidence-root-file-needs-no-row/corpus/cadence/draft/artifacts"
+  }
+}

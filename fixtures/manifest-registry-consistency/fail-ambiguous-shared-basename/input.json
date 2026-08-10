@@ -1,0 +1,13 @@
+{
+  "check": "manifest-registry-consistency",
+  "manifest_path": "fixtures/manifest-registry-consistency/fail-ambiguous-shared-basename/corpus/manifest.json",
+  "project_root": ".",
+  "options": {
+    "governed_roots": [
+      "fixtures/manifest-registry-consistency/fail-ambiguous-shared-basename/corpus/cadence/draft",
+      "fixtures/manifest-registry-consistency/fail-ambiguous-shared-basename/corpus/docs/design",
+      "fixtures/manifest-registry-consistency/fail-ambiguous-shared-basename/corpus/docs/reference"
+    ],
+    "evidence_root": "artifacts/"
+  }
+}

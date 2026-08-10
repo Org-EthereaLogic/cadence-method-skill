@@ -1,0 +1,16 @@
+{
+  "check": "manifest-registry-consistency",
+  "status": "skipped",
+  "skipped_reason": "unavailable",
+  "verdict": null,
+  "findings": [],
+  "stated_limits": [
+    "This check verifies manifest/registry consistency by PATH only: it confirms that every governed artifact under options.governed_roots is registered and that every manifest row names a file that exists, but it never opens, parses, or validates the CONTENT of any governed artifact or of the documents the manifest names (FR-17).",
+    "A manifest row is joined to a governed artifact first by an exact repository-root-relative path match and, failing that, by the basename of the row's path (the filename component, invariant across zone directories). A basename shared by two distinct rows, or by two governed artifacts with no exact match, is REFUSED rather than resolved by manifest order -- a refused join counts as no row and the artifact is reported unregistered. A pure zone move (same basename, different zone directory) therefore stays a pass.",
+    "An authority-document designation is counted from the top-level authority_document (an object with a non-empty path, or each element of an array with one) and from every document_set.documents[] row typed \"authority\"; exactly one designation is required (AC-1.3, method §3.2), and zero or two or more fail.",
+    "A file under options.evidence_root (default \"artifacts/\") never requires a manifest row: it holds evidence about runs, is never itself a governed zone, and is never promoted; demanding a row for it would make every gate run fail on its own evidence.",
+    "A file named by some row's derived_render.path never requires its own manifest row: it is a derived render, the output of render-fidelity, not an independent source artifact.",
+    "Every path in the input envelope -- manifest_path and each options.governed_roots entry -- is resolved beneath the repository root and refused unread when it escapes it, so an absolute path or a \"../\" traversal degrades the run closed to skipped: unavailable rather than reading a file outside the checkout; the containment test also resolves symbolic links: fs.realpathSync is applied to both the target and the repository root before the same containment test is re-applied, so a symbolic link that lives inside the checkout and resolves outside it is refused too, before it is read; a dangling symlink -- one whose target does not exist -- is not a refusal and is reported as the ordinary missing-file outcome instead. This check spawns nothing (fs and path only), so no path here is ever executed."
+  ],
+  "tool_versions": {}
+}
