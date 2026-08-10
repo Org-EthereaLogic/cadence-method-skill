@@ -148,7 +148,7 @@ read the exit code / stdout of, never merely to read.
 | `references/gate-checks.md` | read-as-reference | present (final — WP 2.2) |
 | `references/artifact-layout.md` | read-as-reference | present (final — WP 2.2) |
 | `references/id-namespaces.md` | read-as-reference | present (final — WP 2.2) |
-| `scripts/validators/*` | run-to-execute | present in part (WP 5.1) — `gate-self-test.js` (#21), `cross-reference-integrity.js` (#19), `link-integrity.js` (#23), `id-namespace-resolution.js` (#22), `evidence-tag-grammar.js` (#20), and `loose-pointer-drift.js` (#24, whose `fail` is unreachable by design), plus the validator registry `registry.json`, landed; the remaining five WP 5.1 checks forthcoming — deterministic per-check `pass \| warn \| fail` scripts, pinned by fixtures |
+| `scripts/validators/*` | run-to-execute | present in part (WP 5.1) — `gate-self-test.js` (#21), `cross-reference-integrity.js` (#19), `link-integrity.js` (#23), `id-namespace-resolution.js` (#22), `evidence-tag-grammar.js` (#20), `loose-pointer-drift.js` (#24, whose `fail` is unreachable by design), and `manifest-registry-consistency.js` (#25), plus the validator registry `registry.json`, landed; the remaining four WP 5.1 checks forthcoming — deterministic per-check `pass \| warn \| fail` scripts, pinned by fixtures |
 | `scripts/adapters/*` | run-to-execute | forthcoming (WP 5.1) — thin adapters/preflight for declared external gate tools |
 | The FR-14 promotion report script (`/cadence:gate`, `/cadence:promote`) | run-to-execute | forthcoming (WP 6.1) — computes the `promote \| retry \| quarantine` verdict over the evidence tree |
 
