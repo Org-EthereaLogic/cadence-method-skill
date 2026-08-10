@@ -106,7 +106,7 @@ Eleven checks, four required elements each. Cells carry counts and pointers rath
 | 6 | Link integrity | `link-integrity` | `json`, envelope + 2 options | 5 rows | 3 bullets | 3 fixtures |
 | 7 | Quotation symmetry | `quotation-symmetry` | `json`, envelope + 1 option | 4 rows | 3 bullets | 3 fixtures |
 | 8 | Render fidelity | `render-fidelity` | `json`, envelope + 3 options | 5 rows | 4 bullets | 4 fixtures |
-| 9 | Manifest/registry consistency | `manifest-registry-consistency` | `json`, envelope + 2 options | 5 rows | 3 bullets | 3 fixtures |
+| 9 | Manifest/registry consistency | `manifest-registry-consistency` | `json`, envelope + 2 options | 5 rows | 5 bullets | 3 fixtures |
 | 10 | The gate self-test | `gate-self-test` | `json`, envelope + 2 options | 5 rows | 3 bullets | 3 fixtures |
 | 11 | The tooling shell-lint | `tooling-shell-lint` | `json`, envelope + 2 options | 5 rows | 3 bullets | 3 fixtures |
 
@@ -461,6 +461,8 @@ Regenerates a derived render from its spec and compares the two (method §3.1, p
 
 Verifies the project manifest against the governed tree (method §3.2, Appendix B, AC-1.3, AC-9.2). The manifest is the one place a document set, its authority designation, and a current version are asserted.
 
+**The `document_set.documents[]` row schema.** Each entry carries four required fields — `path` (repository-root-relative; the has-a-row join anchor below, and the document reference the shipped `loose-pointer-drift` selector reads), `type` (method §3.2: "each declared document names its type"), `upstream_dependencies` (method §3.2: "…and upstream dependencies"; an array, may be empty), and `current_version` (Appendix B's "current versions"; the shipped selector's `documents[].current_version` version-assertion leaf) — plus an optional per-row `selection_rationale`. This is exactly the de-facto shape already committed, per row, in the `document_set.documents[]` corpus manifests of the `loose-pointer-drift` pack — the default shape 37 of that pack's 39 `fixtures/loose-pointer-drift/*/corpus/manifest.json` files carry. The two that differ do so deliberately, exercising the shipped selector's own generic version-authority machinery rather than this schema: `warn-custom-version-authority-honored` carries a top-level `entries[]` array whose version leaf is `revision`, selected by that fixture's own `options.version_authority: "entries[].revision"`, and `skipped-manifest-unparseable` is intentionally malformed. Because that pack is shipped and fixture-pinned (#24) and `fixtures/` is a blocked path from here, this check's row schema **matches** those `document_set.documents[]` manifests rather than declaring a second, disagreeing shape for the same manifest. Method §3.2's remaining clause — "the manifest records the selection rationale" — names its **required** home at `document_set.selection_rationale` (document-set level, one value for the whole set, present alongside `documents[]`); the seed already carries exactly this field, empty. **Recorded divergence:** `authority_document` (Appendix B's "designated authority document"; its own shape is settled and out of scope to reopen here — see the non-goals) carries `path`, `type`, and `current_version`, but neither `upstream_dependencies` nor a `selection_rationale`, and each of the 37 `document_set.documents[]` fixtures that carries an `authority_document` omits both; the two non-`document_set` fixtures carry none. That omission is deliberate, not an oversight: the authority document is the root of the dependency graph — nothing beneath it names it as its own upstream dependency — and its designation is the manifest's one binary act (AC-1.3), not a per-document justification requiring its own rationale field.
+
 **Input shape**
 
 ```json
@@ -475,21 +477,29 @@ Verifies the project manifest against the governed tree (method §3.2, Appendix 
 }
 ```
 
+**Identity and the has-a-row join.** A row's identity key is the **basename** of its `path` — the filename component, invariant across zone directories, and already materialized by the shipped selector at `scripts/validators/loose-pointer-drift.js:563` (`path.posix.basename(...)`); this is not a new invention, it reuses a notion the shipped code already computes. The join underlying both "every governed artifact… has a manifest row" and "every manifest row names a file that exists" resolves in two steps: first an **exact match** on a row's declared `path` against the artifact's current repository-root-relative path; failing that, a **basename match** among rows whose `path` lies under the same `options.governed_roots` set. A promotion moves a file between zone directories without renaming it, so it fails the exact-path step and succeeds the basename step — a zone move alone is `pass`, and `path` stays on every row regardless (the shipped `loose-pointer-drift` selector still reads it). When more than one row's basename would match ambiguously — two distinct documents that happen to share a filename — the join is **refused**, never resolved by manifest order, the same discipline the shipped selector already applies to a basename collision (`fixtures/loose-pointer-drift/pass-shared-basename-reference-refused/`); a refused join counts as no row.
+
+**Derived render.** A `document_set.documents[]` row MAY carry an optional `derived_render` object, `{ "path": "<repository-root-relative path to the render>" }`. This is the declaration mechanism `render-fidelity`'s `skipped: not-applicable` reads ("The artifact declares no derived render", above): an artifact under a `render-fidelity` run declares a derived render exactly when its own manifest row carries `derived_render`, and that row's `derived_render.path` names the same file as the run's `options.render_path`. It is also the mechanism AC-11.2 names — "a file the manifest marks as derived" is the file named by some row's `derived_render.path` — settled here (folding in #97 F8) rather than deferred to #27; `render-fidelity`'s own subsection above is unchanged.
+
+**Governed artifact.** Under `options.governed_roots`, a file counts as a governed artifact requiring a manifest row when it is not a directory, its repository-root-relative path lies under one of the named roots (a directory-boundary prefix test: `cadence/draft/` matches, `cadence/draft-old/` does not), it does not lie under `options.evidence_root` (the existing carve-out below — `artifacts/` is never a zone and is never promoted), and it is not the target of some row's `derived_render.path` (above — a derived render is `render-fidelity`'s output, not an independent source artifact requiring a row of its own).
+
 **Verdict semantics**
 
 | Verdict | Condition | Exit code |
 | --- | --- | --- |
-| `pass` | Every governed artifact under `options.governed_roots` has a manifest row; every manifest row names a file that exists; the manifest declares **exactly one** authority document; the document-set declaration carries its selection-rationale field and its current-version assertion slot. | `0` |
-| `warn` | A manifest row's selection-rationale field is present but empty. The structure is there and the reason for it is not. | `10` |
-| `fail` | Zero or two authority-document designations (AC-1.3); a governed artifact with no manifest row; a manifest row naming a file that does not exist. | `20` |
-| `skipped: not-applicable` | The project declares no document set yet — an initialized scaffold before its first artifact. | `30` |
+| `pass` | Every governed artifact under `options.governed_roots` has a manifest row (the identity join above); every manifest row names a file that exists (same join); the manifest declares **exactly one** authority document; `document_set.selection_rationale` is present and non-empty. | `0` |
+| `warn` | `document_set.selection_rationale` is present as a key but its value is empty while `document_set.documents` is non-empty, or a row's own optional `selection_rationale` is present but empty. The structure is there and the reason for it is not. | `10` |
+| `fail` | Zero or two authority-document designations (AC-1.3); a governed artifact with no manifest row, including a refused ambiguous basename join (above); a manifest row naming a file that does not exist. | `20` |
+| `skipped: not-applicable` | The project declares no document set yet — an initialized scaffold before its first artifact (`document_set.documents` is empty). | `30` |
 | `skipped: unavailable` | The manifest cannot be read or parsed. | `30` |
 
 **Edge cases**
 
-- A file under `options.evidence_root`: **never** requires a manifest row. `artifacts/` holds evidence about runs, is never itself a zone, and is never promoted; demanding a row for it would make every gate run fail on its own evidence.
+- A file under `options.evidence_root`: **never** requires a manifest row (governed-artifact definition above). `artifacts/` holds evidence about runs, is never itself a zone, and is never promoted; demanding a row for it would make every gate run fail on its own evidence.
 - Two authority-document designations: expected `fail` (AC-1.3). Zero: expected `fail` for the same reason.
-- An artifact that has been promoted between zone directories: the row tracks the artifact, not its path, so a zone move alone is expected `pass`.
+- An artifact that has been promoted between zone directories: the join resolves by basename once the exact path no longer matches (identity above), so a zone move alone is expected `pass`.
+- Two governed artifacts under different non-zone directories that happen to share a basename (for example `docs/design/glossary.md` and `docs/reference/glossary.md`): with no exact-path match for either, the basename join is ambiguous and is refused rather than resolved by manifest order — expected `fail`, the same as any other governed artifact with no resolvable row.
+- A file named by some row's `derived_render.path`: never itself requires a manifest row (governed-artifact definition above) — it is `render-fidelity`'s output, not an independent source artifact.
 
 **Frozen-fixture cases (WP 5.2)**
 
@@ -498,6 +508,8 @@ Verifies the project manifest against the governed tree (method §3.2, Appendix 
 | `pass` | `fixtures/manifest-registry-consistency/pass-one-authority-all-rows/` | `pass` |
 | `warn` | `fixtures/manifest-registry-consistency/warn-empty-selection-rationale/` | `warn` |
 | `fail` | `fixtures/manifest-registry-consistency/fail-two-authority-documents/` | `fail` |
+
+**Why the scaffold seed stays minimal.** `skills/cadence-method/scaffold/manifest.json` is not amended to carry an example row. A freshly initialized project has no documents, and `document_set.documents: []` is exactly what the `skipped: not-applicable` verdict above ("an initialized scaffold before its first artifact") requires; JSON carries no inert comment, so a populated example row would be a live, false declaration that a document exists. The seed's `authority_document` already carries `path`/`type`/`current_version` — the exact fields this subsection settles for that object — so the seed is already consistent with the decided shape without being touched, and `/cadence:init`'s byte-identity argument (AC-1.4) holds trivially because nothing about the seed changed here.
 
 ### The gate self-test
 
@@ -726,8 +738,70 @@ awk '
   { if (lab != "") { body = body $0 "\n"; if ($0 ~ /^\| `/) rows++ } }
   END { flush() }
 ' "$SPEC"
+
+# (d) Per-row counts: each §3 matrix data row's declared "N rows | N bullets |
+#     N fixtures" must equal the actual counts in that check's §4 subsection —
+#     Verdict-semantics data rows, Edge-cases "- " bullets, Frozen-fixture data
+#     rows. Only the leading integer of a cell is read, so row 5's
+#     "3 fixtures (fail unreachable; ...)" parenthetical is ignored. One line
+#     per drifted cell; silence means every row agrees with its subsection.
+awk -F'|' '
+  function trim(s){ gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
+  function leadint(s){ return (match(s, /[0-9]+/)) ? substr(s, RSTART, RLENGTH) : "" }
+  /^## 3\. / { in_matrix=1; sect=""; lab=""; next }
+  /^## /     { in_matrix=0; sect=""; lab=""; next }
+  in_matrix && $1=="" && trim($2) ~ /^[0-9]+$/ {
+    name = trim($3); order[++n] = name
+    dR[name] = leadint($6); dB[name] = leadint($7); dF[name] = leadint($8)
+    next
+  }
+  /^### / { sect = trim(substr($0,5)); lab=""; next }
+  /^\*\*Verdict semantics\*\*$/                 { lab="V"; next }
+  /^\*\*Edge cases\*\*$/                        { lab="E"; next }
+  /^\*\*Frozen-fixture cases \(WP 5\.2\)\*\*$/  { lab="F"; next }
+  /^\*\*/                                       { lab="";  }
+  {
+    if (sect != "") {
+      if      (lab=="V" && $0 ~ /^\| `/) aR[sect]++
+      else if (lab=="E" && $0 ~ /^- /)   aB[sect]++
+      else if (lab=="F" && $0 ~ /^\| `/) aF[sect]++
+    }
+  }
+  END {
+    for (i=1;i<=n;i++){ nm=order[i]
+      if (dR[nm]!="" && (aR[nm]+0)!=(dR[nm]+0)) printf "COUNTDRIFT row %s (%s): matrix says %s rows, subsection has %d\n", i, nm, dR[nm], aR[nm]+0
+      if (dB[nm]!="" && (aB[nm]+0)!=(dB[nm]+0)) printf "COUNTDRIFT row %s (%s): matrix says %s bullets, subsection has %d\n", i, nm, dB[nm], aB[nm]+0
+      if (dF[nm]!="" && (aF[nm]+0)!=(dF[nm]+0)) printf "COUNTDRIFT row %s (%s): matrix says %s fixtures, subsection has %d\n", i, nm, dF[nm], aF[nm]+0
+    }
+  }
+' "$SPEC"
+
+# (e) No UNSCOPED universal over the loose-pointer-drift fixtures in the
+#     manifest-registry-consistency subsection. A prose sentence there that
+#     pairs a bare "every"/"all" with "fixture" but carries no scoping token —
+#     a digit, "document_set", or a named exception fixture (e.g.
+#     "warn-custom-...") — overclaims how the shipped corpus is shaped, the way
+#     the authority_document-omission clause once did with "every shipped
+#     fixture". Sentences are split on ". "; table rows (leading "|") are
+#     skipped so a fixture path like ".../pass-one-authority-all-rows/" is not
+#     misread. One line per unscoped sentence; silence means every universal
+#     about those fixtures is scoped to what the census bears out.
+awk '
+  /^### Manifest\/registry consistency$/ { inmr = 1; next }
+  inmr && /^### / { inmr = 0 }
+  inmr && $0 !~ /^\|/ {
+    n = split(tolower($0), s, /\. /)
+    for (i = 1; i <= n; i++) {
+      t = s[i]
+      if (t ~ /fixture/ &&
+          (t ~ /(^| )every( |$)/ || t ~ /(^| )all( |$)/) &&
+          t !~ /[0-9]/ && t !~ /document_set/ && t !~ /warn-custom/)
+        print "UNSCOPED-UNIVERSAL manifest-registry-consistency: " s[i]
+    }
+  }
+' "$SPEC"
 ````
 
-Four counts of `11` from (a), a count of `11` from (b), and silence from (c) together are the 11 by 4 matrix with no empty cell. Separately, §3's own table carries eleven data rows and four element columns, and no cell in it is empty or a bare dash.
+Four counts of `11` from (a), a count of `11` from (b), and silence from (c) together are the 11 by 4 matrix with no empty cell; silence from (d) is every matrix row's declared `N rows | N bullets | N fixtures` agreeing with the Verdict-semantics rows, Edge-cases bullets, and Frozen-fixture rows in that check's own subsection — the guard that a matrix cell cannot drift away from the section it counts (as row 9's Edge-cases cell once did when two bullets were added to the `manifest-registry-consistency` subsection without updating the count). Silence from (e) is the accuracy guard on the prose itself: no sentence in the `manifest-registry-consistency` subsection pairs a bare `every`/`all` with `fixture` while omitting a scoping token, so no universal there can overclaim the shape of the loose-pointer-drift corpus (as the `authority_document`-omission clause once did before it was scoped to the 37 `document_set.documents[]` fixtures). Separately, §3's own table carries eleven data rows and four element columns, and no cell in it is empty or a bare dash.
 
 To catch a rename, merge, or split against WBS 5.1: extract the eleven check names from WBS 5.1's row in `docs/design/CADENCE_AUTOMATION_PROJECT_PLAN_WBS.md` and diff that list against this file's eleven `###` headings. A drift shows up as a diff line.
