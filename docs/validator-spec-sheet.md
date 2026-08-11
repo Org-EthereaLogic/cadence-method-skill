@@ -70,6 +70,8 @@ Each check states only its deltas from this contract.
 
 **Verdicts and statuses are two different fields.** `verdict` is drawn from the closed set `pass | warn | fail` (FR-8). `status` is drawn from `ran | skipped` and answers a different question: whether the check ran at all (NFR-6). A skipped check emits `"verdict": null` — it does not emit `pass`, and nothing downstream may read its absence as one.
 
+**A check's verdict is the most severe finding it raises.** The per-verdict rows each section below states are the conditions under which a finding of that severity is *raised*; when a single run raises more than one, the check's one `verdict` is `fail` if any finding is a `fail`, otherwise `warn` if any is a `warn`, otherwise `pass` — the fixed precedence `fail > warn > pass`. A `pass` therefore means no `warn` and no `fail` finding was raised at all, and where a section's `pass` and `warn` rows could both read as matching an input, this rule decides it. This is stated once here and not repeated per section.
+
 **The two skip reasons.** Collapsing them would make every gate run quarantine, so they are distinct and are used exactly as follows.
 
 | `skipped_reason` | Means | Effect at a promotion boundary |
@@ -108,7 +110,7 @@ Eleven checks, four required elements each. Cells carry counts and pointers rath
 | 8 | Render fidelity | `render-fidelity` | `json`, envelope + 3 options | 5 rows | 4 bullets | 4 fixtures |
 | 9 | Manifest/registry consistency | `manifest-registry-consistency` | `json`, envelope + 2 options | 5 rows | 5 bullets | 3 fixtures |
 | 10 | The gate self-test | `gate-self-test` | `json`, envelope + 2 options | 5 rows | 3 bullets | 3 fixtures |
-| 11 | The tooling shell-lint | `tooling-shell-lint` | `json`, envelope + 2 options | 5 rows | 3 bullets | 3 fixtures |
+| 11 | The tooling shell-lint | `tooling-shell-lint` | `json`, envelope + 1 option | 5 rows | 3 bullets | 3 fixtures |
 
 ## 4. The eleven checks
 
@@ -252,6 +254,14 @@ Verifies that every cross-reference resolves to a target that exists (method §9
 
 Compares an artifact's revision record against its base revision and fails any modification of an existing row (FR-12, AC-13.1, method §6.2 rule 2, method §8). Rows are history: they record what was true when written, are excluded from version bumps, and are never swept by a find-and-replace.
 
+**Row correspondence.** Rows pair **by position**, never by a cell's value. The check reads the revision table under `options.table_heading` in both the artifact and its `base_revision` and requires the head table's first *N* rows — *N* being the base table's row count — to be **byte-identical** to the base rows, in order; every row past position *N* is an append. This is the literal reading of the append-only invariant (FR-12, method §6.2 rule 2), and it needs no version key and no version ordering, so nothing here is left for an implementer to invent. One consequence is stated so it is not re-decided against a frozen fixture later: a **row inserted mid-table** — a new row at any position before *N* — breaks the byte-identical prefix and is `fail`, not `warn`. An insertion is not an append. The two readings that diverge only on this case — position-paired versus keyed on the `Version` cell — are settled here in favor of position.
+
+**Revision-table shape.** The `Appendix — Revision Record` heading and the `| Version | Date | Change |` columns in the defaults are **this repository's own convention** (`CONTRIBUTING.md`), not a shape the plugin imposes on a governed project. The check finds the table by `options.table_heading` and identifies the `Date` column from that table's header row. The defaults shown are this repository's own values, named here so a reader takes them as a convention rather than a universal.
+
+**Date grammar.** A `Date` cell is read as ISO `YYYY-MM-DD`, and the `warn` below orders appended rows by it. A `Date` cell that is blank or not a well-formed date is **not ordered** — the ordering `warn` is not evaluated for that row and the skipped comparison is named in `stated_limits` — while the append-only `pass`/`fail` still holds, because that comparison is over row *bytes*, not parsed dates; a malformed date inside an existing row is therefore already caught as a byte change by the prefix comparison, not by this grammar. Where the table exposes no identifiable `Date` column at all, ordering is likewise not evaluated and the limit is recorded.
+
+**Cross-check heading alignment.** The default heading is the one the landed `loose-pointer-drift` also recognizes as a revision record when it excludes historic rows from drift (method §6.2 rule 2), so at the default the two checks agree on what counts as history. A project that renames the heading through `options.table_heading` keeps `revision-row-immutability` correct, but `loose-pointer-drift` recognizes a revision record by its own landed rule and does not read this option; broadening the headings it accepts is a change to that pinned check and its frozen fixtures, tracked as the follow-up #102 — until it lands, a renamed heading is honored here and the shared default is the contract across both checks.
+
 **Input shape**
 
 ```json
@@ -268,9 +278,9 @@ Compares an artifact's revision record against its base revision and fails any m
 
 | Verdict | Condition | Exit code |
 | --- | --- | --- |
-| `pass` | The revision table's diff against `base_revision` consists only of appended rows. An artifact that did not exist at the base revision passes with the absence of a baseline recorded in `stated_limits`. | `0` |
-| `warn` | A newly appended row is out of order — dated earlier than the row above it, or carrying a version that sorts below its predecessor. The trail is intact; its ordering is not. | `10` |
-| `fail` | Any byte of an existing row changed. **A table-alignment reflow counts**: re-padding an existing row's cells rewrites history even when the visible text is unchanged, and a validator that normalizes whitespace before comparing would bless exactly the find-and-replace method §6.2 rule 2 prohibits. | `20` |
+| `pass` | The revision table's diff against `base_revision` consists only of rows appended after its byte-identical prefix (Row correspondence, above), and no appended row is out of order — an append-only table with an out-of-order new row is `warn`, not `pass` (§2 verdict precedence). An artifact that did not exist at the base revision passes with the absence of a baseline recorded in `stated_limits`. | `0` |
+| `warn` | A newly appended row is out of order — dated earlier than the row above it in the `Date` column. The trail is intact; its ordering is not. Version tokens are **compared by equality only, never ordered** — the discipline `scripts/validators/loose-pointer-drift.js` already applies — so no row is ever judged out of order by its version. | `10` |
+| `fail` | An existing row was **modified, deleted, or reordered**, or a new row was inserted mid-table: any byte of a prefix row changed, a base-revision row is absent from the head prefix, an existing row's position within the prefix moved, or a new row landed before position *N* (Row correspondence, above). **A table-alignment reflow counts** as a modification: re-padding an existing row's cells rewrites history even when the visible text is unchanged, and a validator that normalizes whitespace before comparing would bless exactly the find-and-replace method §6.2 rule 2 prohibits. | `20` |
 | `skipped: not-applicable` | The artifact has no revision record. Many governed artifacts correctly have none; that is not a defect and is never a pass. | `30` |
 | `skipped: unavailable` | Version control is unresolved, or `base_revision` cannot be resolved (a shallow clone, a detached tree). Degrades closed at a boundary. | `30` |
 
@@ -375,6 +385,10 @@ Resolves the artifact's links against the working tree (method §6.1, AC-9.2). O
 
 Checks **pairing, attribution, and dating only** (method §9, §3.3, §6.1 Draft row). It is a Candidate-gate check in this runtime because method §9 requires every quotation to be whole and sourced at the promotion boundary; the method itself names quotation symmetry as a Draft-zone advisory lint, and that difference is recorded here rather than smoothed over (D-4).
 
+**Attribution.** The term the verdicts below turn on is defined here, because the method uses it only descriptively (method §3.3, §9, AC-9.4) and gives it no syntax. An **attribution** is a source clause immediately following a quotation's closing mark: an em-dash `—` (or the ASCII `--`, or the word `per`), then a source — a person's name, a document title, or a reference token — optionally carrying a date in ISO `YYYY-MM-DD` form. Its **position** is fixed: it sits on the same source line as the closing mark or on the line immediately after it, and only whitespace and punctuation may separate the closing mark from the marker. A quotation whose closing mark is followed by no such clause has **no attribution** (the `fail` below). The `warn`'s "a source the artifact does not otherwise cite" resolves against **the artifact's own citations** — the set of source names appearing in its other attributions and its evidence tags — computed from the artifact alone, with no external reference read. Two source names **match** when equal after trimming surrounding whitespace and punctuation, collapsing internal whitespace runs to a single space, and case-folding; a source that matches no other citation under this rule is the `warn`.
+
+**Boundary with evidence-tag grammar.** This check does not read the seeded evidence-class reference and does not decide **whether** a quotation's class requires a date — that is `evidence-tag-grammar`'s job, which reads the closed set and fails a missing or malformed required parameter (AC-12.3). A second reader of that reference is the divergence R-2 names, so it is deliberately not built here (§2). The dating this check performs is **syntactic only**: where an attribution carries a date, that date must be well-formed. The two checks attend to dates on different surfaces — the claim-line evidence tag versus the quotation's attribution. They read the same artifact and both may see its evidence tags; the **shared surface** is the artifact and those tags. What is **not** shared is the seeded evidence-class reference and its date-classification rules: only `evidence-tag-grammar` reads them, so `quotation-symmetry` cannot widen or narrow a class the other decides (R-2).
+
 **Input shape**
 
 ```json
@@ -389,9 +403,9 @@ Checks **pairing, attribution, and dating only** (method §9, §3.3, §6.1 Draft
 
 | Verdict | Condition | Exit code |
 | --- | --- | --- |
-| `pass` | Every quotation opens and closes, carries an attribution, and carries a date wherever its evidence class requires one. | `0` |
-| `warn` | A nested quotation the pairing rule cannot disambiguate, or an attribution that names a source the artifact does not otherwise cite. Recorded for a human read; not blocking. | `10` |
-| `fail` | An unpaired quotation mark; a quotation with no attribution; a quotation whose evidence class names a date that the tag does not carry. | `20` |
+| `pass` | Every quotation opens and closes and carries an attribution (a source clause, optionally dated; Attribution, above); any date an attribution carries is well-formed. | `0` |
+| `warn` | A nested quotation the pairing rule cannot disambiguate, or an attribution that names a source the artifact does not otherwise cite (Attribution, above). Recorded for a human read; not blocking. | `10` |
+| `fail` | An unpaired quotation mark; a quotation with no attribution; or a malformed date carried by an attribution. A quotation raising both a `warn` and a `fail` finding is `fail` (§2 verdict precedence). | `20` |
 | `skipped: not-applicable` | The artifact contains no quotation. | `30` |
 
 **Edge cases**
@@ -431,12 +445,14 @@ Regenerates a derived render from its spec and compares the two (method §3.1, p
 
 `normalization` names a fixed rule set, applied in this order: extract text rather than compare bytes; drop producer, creator, and creation-date metadata; normalize line endings to a single newline; collapse runs of whitespace to one space; drop page-break artifacts and page numbers; rejoin words hyphenated at a line break; compare under a fixed byte collation. The **normalized text** is what the fixture pins, so a renderer patch release that changes only embedded metadata cannot flip a verdict.
 
+**Producer provenance.** The `warn` below turns on the render's producer, which `text-extract-v1` deliberately drops — so the producer is read on a **separate metadata path**, directly from the render's document metadata, before and independent of the text normalization above. The two metadata keys are read in a fixed precedence: **`Producer` first, then `Creator`** when `Producer` is absent. "Differs from the version preflight resolved" is defined against the preflight `{ binary, version }` the run already resolved — the §5 record carried in the input's `tools.render_toolchain` (or `tools.pdf_extractor` for a PDF render); in a real run that key holds the resolved record, not the abbreviated `resolved: true` the input example shows. The comparison is **normalized**: the metadata string and the resolved `binary` and `version` are each lower-cased and their internal whitespace collapsed, and the render `warn`s when the resolved `binary` name or `version` does not appear as a token in the normalized metadata string — never a raw-string equality. A render carrying neither `Producer` nor `Creator` cannot be compared and does **not** `warn`; the absence is recorded in `stated_limits`. Provenance only separates `warn` from `pass` — the normalized-text comparison decides `pass` from `fail`.
+
 **Verdict semantics**
 
 | Verdict | Condition | Exit code |
 | --- | --- | --- |
 | `pass` | A fresh regeneration from `spec_path` normalizes byte-identically to the committed render at `render_path`. | `0` |
-| `warn` | Normalized text matches, but the committed render's recorded producer differs from the version preflight resolved. Equivalence holds; provenance drifted. | `10` |
+| `warn` | Normalized text matches, but the committed render's recorded producer differs from the version preflight resolved (Producer provenance, above). Equivalence holds; provenance drifted. | `10` |
 | `fail` | Normalized text differs — the render was hand-edited, or was generated from a different spec revision. | `20` |
 | `skipped: not-applicable` | The artifact declares no derived render. | `30` |
 | `skipped: unavailable` | The render toolchain or the extractor is unresolved (NFR-3). Never a pass; at a promotion boundary the gate verdict is `quarantine`. | `30` |
@@ -559,6 +575,10 @@ Proves that each registered check still fires on a known-bad input (method §6.1
 
 Lints the gate's own shell tooling (method §6.1, NFR-3). Its severity-to-verdict mapping is **pinned in the adapter**, not inherited from the tool, so a tool upgrade cannot change a verdict without a recorded change (R-2).
 
+**Severity map.** The severity-to-verdict map — `error → fail`, `warning → fail`, `info → warn`, `style → warn` in this repository's binding — is declared in the **shell-lint adapter's `manifest`** (`scripts/adapters/`), not in the check's caller-supplied `options`. It is pinned there and changes only through a reviewed adapter edit, so a tool upgrade — or a caller — cannot flip a verdict without a recorded change (R-2). The adapter stays thin (§5): it *declares* the map as data; the validator *applies* it, reading it from the adapter manifest, never from its own input. This is why the input `options` below carries no `severity_map`.
+
+**Diagnostic shape.** The shell-lint adapter hands the validator a normalized array — one entry per tool diagnostic, `{ "path", "line", "code", "severity" }`: `path` repository-root-relative, `line` 1-based, `code` the tool's own rule identifier, `severity` the tool's raw severity string (the token the map above keys on). The adapter exposes it through a named operation alongside `resolve()` — a `lint(script_paths)` export that runs the bound tool over the resolved script set and returns `{ "diagnostics": [ … ] }` — over the single-file module transport §5 already defines, introducing no separate process protocol. When the shell-lint role is unresolved, or a lint run cannot execute, the adapter returns no diagnostics and the check reports `skipped: unavailable` (degrade closed), never an empty `pass`. **Message generation stays #29's:** the adapter carries only the four normalized fields, and the validator composes the `message`. This is the **#30 ↔ #29 interface**: #30's shell-lint adapter produces the array and the `lint` operation — an obligation this settles for it — and #29 consumes them, mapping each `severity` and emitting findings in §2's `{ path, line, code, severity, message }` shape. It fixes a shape and an operation only and binds no binary, so it carries no NFR-3 entry; binding the role to a tool is #30's, with its NFR-3 entry, in one change (§5).
+
 **Input shape**
 
 ```json
@@ -566,8 +586,7 @@ Lints the gate's own shell tooling (method §6.1, NFR-3). Its severity-to-verdic
   "check": "tooling-shell-lint",
   "tools": { "shell_lint": { "resolved": true } },
   "options": {
-    "script_globs": ["scripts/**/*.sh", "hooks/**/*.sh"],
-    "severity_map": { "error": "fail", "warning": "fail", "info": "warn", "style": "warn" }
+    "script_globs": ["scripts/**/*.sh", "hooks/**/*.sh"]
   }
 }
 ```
@@ -576,8 +595,8 @@ Lints the gate's own shell tooling (method §6.1, NFR-3). Its severity-to-verdic
 
 | Verdict | Condition | Exit code |
 | --- | --- | --- |
-| `pass` | The lint produced no diagnostic that `options.severity_map` maps to `warn` or `fail`. | `0` |
-| `warn` | At least one diagnostic maps to `warn`, and none maps to `fail`. A severity the map does not recognize also lands here, with the unmapped severity named in the finding — never silently dropped. | `10` |
+| `pass` | Every diagnostic's severity is recognized by the adapter's map and maps to neither `warn` nor `fail` — or the lint produced no diagnostic at all. | `0` |
+| `warn` | At least one diagnostic maps to `warn`, **or carries a severity the adapter's map does not recognize** (named in the finding, never silently dropped), and none maps to `fail`. | `10` |
 | `fail` | At least one diagnostic maps to `fail`. | `20` |
 | `skipped: not-applicable` | The project's gate tooling contains no shell script matching `options.script_globs`. | `30` |
 | `skipped: unavailable` | The shell-lint role is unresolved by preflight (NFR-3). Never a pass; `quarantine` at a promotion boundary. | `30` |
@@ -607,7 +626,7 @@ The core validators need only Node and the working tree. The complete promotion 
 | Render toolchain | Regenerating a derived render from its spec | Render fidelity |
 | PDF extractor | Extracting comparable text from a rendered PDF, where PDF fidelity is checked | Render fidelity (PDF renders only) |
 
-**Adapter contract.** One file per role under `scripts/adapters/`, same single-file zero-dependency shape as a validator. Each exports a `manifest` naming the role, the probe command, the rule for parsing a version out of the probe's output, and the supported range; and a `resolve()` returning one preflight record.
+**Adapter contract.** One file per role under `scripts/adapters/`, same single-file zero-dependency shape as a validator. Each exports a `manifest` naming the role, the probe command, the rule for parsing a version out of the probe's output, and the supported range; and a `resolve()` returning one preflight record. The **shell-lint adapter** additionally declares its severity-to-verdict map in that `manifest` and exposes the normalized diagnostic array `{ path, line, code, severity }` its check consumes (the tooling shell-lint subsection in §4); this reshaping carries no gate or verdict logic, so the adapter stays thin (NFR-1).
 
 ```json
 {
